@@ -12,7 +12,7 @@ atlas = ["data/*"]
 include = ["atlas"]
 
 [project]
-name = "atlas-python-sdk"
+name = "atlas_python_sdk"
 version = "0.1.0"
 description = "atlasデータにpythonで簡単にアクセスするためのライブラリです。"
 readme = "README.md"
