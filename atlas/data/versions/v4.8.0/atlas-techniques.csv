@@ -1,0 +1,435 @@
+﻿ID,STIX ID,name,description,url,created,last modified,tactics,platforms
+AML.T0040,attack-pattern--da8fff4a-bfff-4fe2-9d45-1c01fd9d3b73,AI Model Inference API Access,"Adversaries may gain access to a model via legitimate access to the inference API.
+Inference API access can be a source of information to the adversary ([Discover ML Model Ontology](/techniques/AML.T0013), [Discover ML Model Family](/techniques/AML.T0014)), a means of staging the attack ([Verify Attack](/techniques/AML.T0042), [Craft Adversarial Data](/techniques/AML.T0043)), or for introducing data to the target system for Impact ([Evade ML Model](/techniques/AML.T0015), [Erode ML Model Integrity](/techniques/AML.T0031)).
+
+Many systems rely on the same models provided via an inference API, which means they share the same vulnerabilities. This is especially true of foundation models which are prohibitively resource intensive to train. Adversaries may use their access to model APIs to identify vulnerabilities such as jailbreaks or hallucinations and then target applications that use the same models.",https://atlas.mitre.org/techniques/AML.T0040,14 March 2025,14 March 2025,ML Model Access,ATLAS
+AML.T0008,attack-pattern--3821f3bc-85b6-4090-9061-96f19a1a5582,Acquire Infrastructure,"Adversaries may buy, lease, or rent infrastructure for use throughout their operation.
+A wide variety of infrastructure exists for hosting and orchestrating adversary operations.
+Infrastructure solutions include physical or cloud servers, domains, mobile devices, and third-party web services.
+Free resources may also be used, but they are typically limited.
+Infrastructure can also include physical components such as countermeasures that degrade or disrupt AI components or sensors, including printed materials, wearables, or disguises.
+
+Use of these infrastructure solutions allows an adversary to stage, launch, and execute an operation.
+Solutions may help adversary operations blend in with traffic that is seen as normal, such as contact to third-party web services.
+Depending on the implementation, adversaries may use infrastructure that makes it difficult to physically tie back to them as well as utilize infrastructure that can be rapidly provisioned, modified, and shut down.",https://atlas.mitre.org/techniques/AML.T0008,14 March 2025,14 March 2025,Resource Development,ATLAS
+AML.T0002,attack-pattern--c652f980-4fff-47ae-8119-d6a927255ebc,Acquire Public ML Artifacts,"Adversaries may search public sources, including cloud storage, public-facing services, and software or data repositories, to identify machine learning artifacts.
+These machine learning artifacts may include the software stack used to train and deploy models, training and testing data, model configurations and parameters.
+An adversary will be particularly interested in artifacts hosted by or associated with the victim organization as they may represent what that organization uses in a production environment.
+Adversaries may identify artifact repositories via other resources associated with the victim organization (e.g. [Search Victim-Owned Websites](/techniques/AML.T0003) or [Search for Victim's Publicly Available Research Materials](/techniques/AML.T0000)).
+These ML artifacts often provide adversaries with details of the ML task and approach.
+
+ML artifacts can aid in an adversary's ability to [Create Proxy ML Model](/techniques/AML.T0005).
+If these artifacts include pieces of the actual model in production, they can be used to directly [Craft Adversarial Data](/techniques/AML.T0043).
+Acquiring some artifacts requires registration (providing user details such email/name), AWS keys, or written requests, and may require the adversary to [Establish Accounts](/techniques/AML.T0021).
+
+Artifacts might be hosted on victim-controlled infrastructure, providing the victim with some information on who has accessed that data.
+",https://atlas.mitre.org/techniques/AML.T0002,14 March 2025,14 March 2025,Resource Development,ATLAS
+AML.T0006,attack-pattern--40688955-5558-47a9-ad37-393d75b4107f,Active Scanning,"An adversary may probe or scan the victim system to gather information for targeting.
+This is distinct from other reconnaissance techniques that do not involve direct interaction with the victim system.
+",https://atlas.mitre.org/techniques/AML.T0006,14 March 2025,14 March 2025,Reconnaissance,ATLAS
+AML.T0016.000,attack-pattern--341c0beb-7a50-4669-8abc-fb6e22e96807,Adversarial ML Attack Implementations,"Adversaries may search for existing open source implementations of machine learning attacks. The research community often publishes their code for reproducibility and to further future research. Libraries intended for research purposes, such as CleverHans, the Adversarial Robustness Toolbox, and FoolBox, can be weaponized by an adversary. Adversaries may also obtain and use tools that were not originally designed for adversarial ML attacks as part of their attack.",https://atlas.mitre.org/techniques/AML.T0016.000,14 March 2025,14 March 2025,Resource Development,ATLAS
+AML.T0017.000,attack-pattern--01ac9ace-7f47-4082-ad0a-62e1696478e8,Adversarial ML Attacks,"Adversaries may develop their own adversarial attacks.
+They may leverage existing libraries as a starting point ([Adversarial ML Attack Implementations](/techniques/AML.T0016.000)).
+They may implement ideas described in public research papers or develop custom made attacks for the victim model.
+",https://atlas.mitre.org/techniques/AML.T0017.000,14 March 2025,14 March 2025,Resource Development,ATLAS
+AML.T0018,attack-pattern--2ea7686d-a65f-4e06-b962-02495a8f1cdb,Backdoor ML Model,"Adversaries may introduce a backdoor into a ML model.
+A backdoored model operates performs as expected under typical conditions, but will produce the adversary's desired output when a trigger is introduced to the input data.
+A backdoored model provides the adversary with a persistent artifact on the victim system.
+The embedded vulnerability is typically activated at a later time by data samples with an [Insert Backdoor Trigger](/techniques/AML.T0043.004)
+",https://atlas.mitre.org/techniques/AML.T0018,14 March 2025,14 March 2025,"ML Attack Staging, Persistence",ATLAS
+AML.T0043.001,attack-pattern--fb1d969f-a88b-4404-a1a5-36fc7eab7c41,Black-Box Optimization,"In Black-Box attacks, the adversary has black-box (i.e. [AI Model Inference API Access](/techniques/AML.T0040) via API access) access to the target model.
+With black-box attacks, the adversary may be using an API that the victim is monitoring.
+These attacks are generally less effective and require more inferences than [White-Box Optimization](/techniques/AML.T0043.000) attacks, but they require much less access.
+",https://atlas.mitre.org/techniques/AML.T0043.001,14 March 2025,14 March 2025,ML Attack Staging,ATLAS
+AML.T0043.002,attack-pattern--8f1fef8f-0971-4171-a7a3-2a2e9b7c087c,Black-Box Transfer,"In Black-Box Transfer attacks, the adversary uses one or more proxy models (trained via [Create Proxy ML Model](/techniques/AML.T0005) or [Train Proxy via Replication](/techniques/AML.T0005.001)) they have full access to and are representative of the target model.
+The adversary uses [White-Box Optimization](/techniques/AML.T0043.000) on the proxy models to generate adversarial examples.
+If the set of proxy models are close enough to the target model, the adversarial example should generalize from one to another.
+This means that an attack that works for the proxy models will likely then work for the target model.
+If the adversary has [AI Model Inference API Access](/techniques/AML.T0040), they may use [Verify Attack](/techniques/AML.T0042) to confirm the attack is working and incorporate that information into their training process.
+",https://atlas.mitre.org/techniques/AML.T0043.002,14 March 2025,14 March 2025,ML Attack Staging,ATLAS
+AML.T0067.000,attack-pattern--ce2d3599-8f7a-495e-aa86-05311ba51356,Citations,"Adversaries may manipulate the citations provided in an AI system's response, in order to make it appear trustworthy. Variants include citing a providing the wrong citation, making up a new citation, or providing the right citation but for adversary-provided data.",https://atlas.mitre.org/techniques/AML.T0067.000,14 March 2025,14 March 2025,Defense Evasion,ATLAS
+AML.T0050,attack-pattern--15cf5a0f-8aab-45b1-aea7-f163d6be9d92,Command and Scripting Interpreter,"Adversaries may abuse command and script interpreters to execute commands, scripts, or binaries. These interfaces and languages provide ways of interacting with computer systems and are a common feature across many different platforms. Most systems come with some built-in command-line interface and scripting capabilities, for example, macOS and Linux distributions include some flavor of Unix Shell while Windows installations include the Windows Command Shell and PowerShell.
+
+There are also cross-platform interpreters such as Python, as well as those commonly associated with client applications such as JavaScript and Visual Basic.
+
+Adversaries may abuse these technologies in various ways as a means of executing arbitrary commands. Commands and scripts can be embedded in Initial Access payloads delivered to victims as lure documents or as secondary payloads downloaded from an existing C2. Adversaries may also execute commands through interactive terminals/shells, as well as utilize various Remote Services in order to achieve remote Execution.
+",https://atlas.mitre.org/techniques/AML.T0050,14 March 2025,14 March 2025,Execution,ATLAS
+AML.T0008.001,attack-pattern--9a779962-38cd-4b1e-94f7-ff704d090dd6,Consumer Hardware,"Adversaries may acquire consumer hardware to conduct their attacks.
+Owning the hardware provides the adversary with complete control of the environment. These devices can be hard to trace.
+",https://atlas.mitre.org/techniques/AML.T0008.001,14 March 2025,14 March 2025,Resource Development,ATLAS
+AML.T0034,attack-pattern--71236163-a6a2-48d2-aee5-df2c480df0d7,Cost Harvesting,"Adversaries may target different machine learning services to send useless queries or computationally expensive inputs to increase the cost of running services at the victim organization.
+Sponge examples are a particular type of adversarial data designed to maximize energy consumption and thus operating cost.
+",https://atlas.mitre.org/techniques/AML.T0034,14 March 2025,14 March 2025,Impact,ATLAS
+AML.T0043,attack-pattern--d3cfc2f0-87dc-4fb1-8a0d-9b5cf7d10484,Craft Adversarial Data,"Adversarial data are inputs to a machine learning model that have been modified such that they cause the adversary's desired effect in the target model.
+Effects can range from misclassification, to missed detections, to maximizing energy consumption.
+Typically, the modification is constrained in magnitude or location so that a human still perceives the data as if it were unmodified, but human perceptibility may not always be a concern depending on the adversary's intended effect.
+For example, an adversarial input for an image classification task is an image the machine learning model would misclassify, but a human would still recognize as containing the correct class.
+
+Depending on the adversary's knowledge of and access to the target model, the adversary may use different classes of algorithms to develop the adversarial example such as [White-Box Optimization](/techniques/AML.T0043.000), [Black-Box Optimization](/techniques/AML.T0043.001), [Black-Box Transfer](/techniques/AML.T0043.002), or [Manual Modification](/techniques/AML.T0043.003).
+
+The adversary may [Verify Attack](/techniques/AML.T0042) their approach works if they have white-box or inference API access to the model.
+This allows the adversary to gain confidence their attack is effective ""live"" environment where their attack may be noticed.
+They can then use the attack at a later time to accomplish their goals.
+An adversary may optimize adversarial examples for [Evade ML Model](/techniques/AML.T0015), or to [Erode ML Model Integrity](/techniques/AML.T0031).
+",https://atlas.mitre.org/techniques/AML.T0043,14 March 2025,14 March 2025,ML Attack Staging,ATLAS
+AML.T0005,attack-pattern--ee609ad3-6280-4514-85af-b00798a78e84,Create Proxy ML Model,"Adversaries may obtain models to serve as proxies for the target model in use at the victim organization.
+Proxy models are used to simulate complete access to the target model in a fully offline manner.
+
+Adversaries may train models from representative datasets, attempt to replicate models from victim inference APIs, or use available pre-trained models.
+",https://atlas.mitre.org/techniques/AML.T0005,14 March 2025,14 March 2025,ML Attack Staging,ATLAS
+AML.T0010.002,attack-pattern--4c34c31f-5157-48ad-acb8-4344cadd93cf,Data,"Data is a key vector of supply chain compromise for adversaries.
+Every machine learning project will require some form of data.
+Many rely on large open source datasets that are publicly available.
+An adversary could rely on compromising these sources of data.
+The malicious data could be a result of [Poison Training Data](/techniques/AML.T0020) or include traditional malware.
+
+An adversary can also target private datasets in the labeling phase.
+The creation of private datasets will often require the hiring of outside labeling services.
+An adversary can poison a dataset by modifying the labels being generated by the labeling service.
+",https://atlas.mitre.org/techniques/AML.T0010.002,14 March 2025,14 March 2025,Initial Access,ATLAS
+AML.T0036,attack-pattern--42caf4ac-db7b-4dd4-9299-06d39dd3d8d2,Data from Information Repositories,"Adversaries may leverage information repositories to mine valuable information.
+Information repositories are tools that allow for storage of information, typically to facilitate collaboration or information sharing between users, and can store a wide variety of data that may aid adversaries in further objectives, or direct access to the target information.
+
+Information stored in a repository may vary based on the specific instance or environment.
+Specific common information repositories include SharePoint, Confluence, and enterprise databases such as SQL Server.
+",https://atlas.mitre.org/techniques/AML.T0036,14 March 2025,14 March 2025,Collection,ATLAS
+AML.T0037,attack-pattern--25865eb8-7709-4e3b-9d43-878646f8f5a5,Data from Local System,"Adversaries may search local system sources, such as file systems and configuration files or local databases, to find files of interest and sensitive data prior to Exfiltration.
+
+This can include basic fingerprinting information and sensitive data such as ssh keys.
+",https://atlas.mitre.org/techniques/AML.T0037,14 March 2025,14 March 2025,Collection,ATLAS
+AML.T0002.000,attack-pattern--f85d3313-5de8-4d27-9d23-bf3fa79946e5,Datasets,"Adversaries may collect public datasets to use in their operations.
+Datasets used by the victim organization or datasets that are representative of the data used by the victim organization may be valuable to adversaries.
+Datasets can be stored in cloud storage, or on victim-owned websites.
+Some datasets require the adversary to [Establish Accounts](/techniques/AML.T0021) for access.
+
+Acquired datasets help the adversary advance their operations, stage attacks,  and tailor attacks to the victim organization.
+",https://atlas.mitre.org/techniques/AML.T0002.000,14 March 2025,14 March 2025,Resource Development,ATLAS
+AML.T0029,attack-pattern--861e7c2c-3f39-4131-b657-d9d9149189d0,Denial of ML Service,"Adversaries may target machine learning systems with a flood of requests for the purpose of degrading or shutting down the service.
+Since many machine learning systems require significant amounts of specialized compute, they are often expensive bottlenecks that can become overloaded.
+Adversaries can intentionally craft inputs that require heavy amounts of useless compute from the machine learning system.
+",https://atlas.mitre.org/techniques/AML.T0029,14 March 2025,14 March 2025,Impact,ATLAS
+AML.T0017,attack-pattern--ca864493-d868-4671-ba43-b721b10a5bba,Develop Capabilities,"Adversaries may develop their own capabilities to support operations. This process encompasses identifying requirements, building solutions, and deploying capabilities. Capabilities used to support attacks on ML systems are not necessarily ML-based themselves. Examples include setting up websites with adversarial information or creating Jupyter notebooks with obfuscated exfiltration code.",https://atlas.mitre.org/techniques/AML.T0017,14 March 2025,14 March 2025,Resource Development,ATLAS
+AML.T0051.000,attack-pattern--dcce6e07-56ea-416a-a15b-7693f0f0d631,Direct,"An adversary may inject prompts directly as a user of the LLM. This type of injection may be used by the adversary to gain a foothold in the system or to misuse the LLM itself, as for example to generate harmful content.
+",https://atlas.mitre.org/techniques/AML.T0051.000,14 March 2025,14 March 2025,Execution,ATLAS
+AML.T0063,attack-pattern--737e473c-ed93-4f70-95a0-9c1ae74390bb,Discover AI Model Outputs,"Adversaries may discover model outputs, such as class scores, whose presence is not required for the system to function and are not intended for use by the end user. Model outputs may be found in logs or may be included in API responses.
+Model outputs may enable the adversary to identify weaknesses in the model and develop attacks.",https://atlas.mitre.org/techniques/AML.T0063,14 March 2025,14 March 2025,Discovery,ATLAS
+AML.T0062,attack-pattern--8d2b6be6-f86e-4b55-97de-491979e9cf2a,Discover LLM Hallucinations,"Adversaries may prompt large language models and identify hallucinated entities.
+They may request software packages, commands, URLs, organization names, or e-mail addresses, and identify hallucinations with no connected real-world source. Discovered hallucinations provide the adversary with potential targets to [Publish Hallucinated Entities](/techniques/AML.T0060). Different LLMs have been shown to produce the same hallucinations, so the hallucinations exploited by an adversary may affect users of other LLMs.",https://atlas.mitre.org/techniques/AML.T0062,14 March 2025,14 March 2025,Discovery,ATLAS
+AML.T0069,attack-pattern--63388116-e4dd-45c5-8021-74bfd69e66a0,Discover LLM System Information,"The adversary is trying to discover something about the large language model's (LLM) system information. This may be found in a configuration file containing the system instructions or extracted via interactions with the LLM. The desired information may include the full system prompt, special characters that have significance to the LLM or keywords indicating functionality available to the LLM. Information about how the LLM is instructed can be used by the adversary to understand the system's capabilities and to aid them in crafting malicious prompts.",https://atlas.mitre.org/techniques/AML.T0069,14 March 2025,14 March 2025,Discovery,ATLAS
+AML.T0007,attack-pattern--8a47d00f-77c8-4144-8452-facca3096fa3,Discover ML Artifacts,"Adversaries may search private sources to identify machine learning artifacts that exist on the system and gather information about them.
+These artifacts can include the software stack used to train and deploy models, training and testing data management systems, container registries, software repositories, and model zoos.
+
+This information can be used to identify targets for further collection, exfiltration, or disruption, and to tailor and improve attacks.
+",https://atlas.mitre.org/techniques/AML.T0007,14 March 2025,14 March 2025,Discovery,ATLAS
+AML.T0014,attack-pattern--9115a9b6-855a-4acf-802c-aad9eeedc310,Discover ML Model Family,"Adversaries may discover the general family of model.
+General information about the model may be revealed in documentation, or the adversary may use carefully constructed examples and analyze the model's responses to categorize it.
+
+Knowledge of the model family can help the adversary identify means of attacking the model and help tailor the attack.
+",https://atlas.mitre.org/techniques/AML.T0014,14 March 2025,14 March 2025,Discovery,ATLAS
+AML.T0013,attack-pattern--b99c824b-c87f-4e39-ba72-7b8b299f0039,Discover ML Model Ontology,"Adversaries may discover the ontology of a machine learning model's output space, for example, the types of objects a model can detect.
+The adversary may discovery the ontology by repeated queries to the model, forcing it to enumerate its output space.
+Or the ontology may be discovered in a configuration file or in documentation about the model.
+
+The model ontology helps the adversary understand how the model is being used by the victim.
+It is useful to the adversary in creating targeted attacks.
+",https://atlas.mitre.org/techniques/AML.T0013,14 March 2025,14 March 2025,Discovery,ATLAS
+AML.T0008.002,attack-pattern--ce19e9c5-1006-43af-a6de-cd16021be9f5,Domains,"Adversaries may acquire domains that can be used during targeting. Domain names are the human readable names used to represent one or more IP addresses. They can be purchased or, in some cases, acquired for free.
+
+Adversaries may use acquired domains for a variety of purposes (see [ATT&CK](https://attack.mitre.org/techniques/T1583/001/)). Large AI datasets are often distributed as a list of URLs to individual datapoints. Adversaries may acquire expired domains that are included in these datasets and replace individual datapoints with poisoned examples ([Publish Poisoned Datasets](/techniques/AML.T0019)).",https://atlas.mitre.org/techniques/AML.T0008.002,14 March 2025,14 March 2025,Discovery,ATLAS
+AML.T0059,attack-pattern--07179795-e764-4d6a-a105-7fc73bd970ff,Erode Dataset Integrity,"Adversaries may poison or manipulate portions of a dataset to reduce its usefulness, reduce trust, and cause users to waste resources correcting errors.",https://atlas.mitre.org/techniques/AML.T0059,14 March 2025,14 March 2025,Impact,ATLAS
+AML.T0031,attack-pattern--4b0d8468-e00f-4ba2-9e18-1a2f527f08b2,Erode ML Model Integrity,"Adversaries may degrade the target model's performance with adversarial data inputs to erode confidence in the system over time.
+This can lead to the victim organization wasting time and money both attempting to fix the system and performing the tasks it was meant to automate by hand.
+",https://atlas.mitre.org/techniques/AML.T0031,14 March 2025,14 March 2025,Impact,ATLAS
+AML.T0021,attack-pattern--becf223c-e8c2-41f7-85b6-d29859ca95d7,Establish Accounts,"Adversaries may create accounts with various services for use in targeting, to gain access to resources needed in [ML Attack Staging](/tactics/AML.TA0001), or for victim impersonation.
+",https://atlas.mitre.org/techniques/AML.T0021,14 March 2025,14 March 2025,Resource Development,ATLAS
+AML.T0015,attack-pattern--ccf27b22-48bf-4219-a668-fa60eb0d94a4,Evade ML Model,"Adversaries can [Craft Adversarial Data](/techniques/AML.T0043) that prevent a machine learning model from correctly identifying the contents of the data.
+This technique can be used to evade a downstream task where machine learning is utilized.
+The adversary may evade machine learning based virus/malware detection, or network scanning towards the goal of a traditional cyber attack.
+",https://atlas.mitre.org/techniques/AML.T0015,14 March 2025,14 March 2025,"Defense Evasion, Impact, Initial Access",ATLAS
+AML.T0025,attack-pattern--55a17dc0-be82-40b8-80e7-f97e1e867b58,Exfiltration via Cyber Means,"Adversaries may exfiltrate ML artifacts or other information relevant to their goals via traditional cyber means.
+
+See the ATT&CK [Exfiltration](https://attack.mitre.org/tactics/TA0010/) tactic for more information.
+",https://atlas.mitre.org/techniques/AML.T0025,14 March 2025,14 March 2025,Exfiltration,ATLAS
+AML.T0024,attack-pattern--3f333baa-31b3-4196-966c-5298a8b106c5,Exfiltration via ML Inference API,"Adversaries may exfiltrate private information via [AI Model Inference API Access](/techniques/AML.T0040).
+ML Models have been shown leak private information about their training data (e.g.  [Infer Training Data Membership](/techniques/AML.T0024.000), [Invert ML Model](/techniques/AML.T0024.001)).
+The model itself may also be extracted ([Extract ML Model](/techniques/AML.T0024.002)) for the purposes of [ML Intellectual Property Theft](/techniques/AML.T0048.004).
+
+Exfiltration of information relating to private training data raises privacy concerns.
+Private training data may include personally identifiable information, or other protected data.
+",https://atlas.mitre.org/techniques/AML.T0024,14 March 2025,14 March 2025,Exfiltration,ATLAS
+AML.T0049,attack-pattern--33fd1b84-34af-473e-a0cf-99bb1dec61c6,Exploit Public-Facing Application,"Adversaries may attempt to take advantage of a weakness in an Internet-facing computer or program using software, data, or commands in order to cause unintended or unanticipated behavior. The weakness in the system can be a bug, a glitch, or a design vulnerability. These applications are often websites, but can include databases (like SQL), standard services (like SMB or SSH), network device administration and management protocols (like SNMP and Smart Install), and any other applications with Internet accessible open sockets, such as web servers and related services.
+",https://atlas.mitre.org/techniques/AML.T0049,14 March 2025,14 March 2025,Initial Access,ATLAS
+AML.T0048,attack-pattern--60eeb103-32b3-429f-895e-99c229e1181e,External Harms,"Adversaries may abuse their access to a victim system and use its resources or capabilities to further their goals by causing harms external to that system.
+These harms could affect the organization (e.g. Financial Harm, Reputational Harm), its users (e.g. User Harm), or the general public (e.g. Societal Harm).
+",https://atlas.mitre.org/techniques/AML.T0048,14 March 2025,14 March 2025,Impact,ATLAS
+AML.T0056,attack-pattern--b68a2222-7aba-4a03-9f64-20e89faf4ec6,Extract LLM System Prompt,"Adversaries may attempt to extract a large language model's (LLM) system prompt. This can be done via prompt injection to induce the model to reveal its own system prompt or may be extracted from a configuration file.
+
+System prompts can be a portion of an AI provider's competitive advantage and are thus valuable intellectual property that may be targeted by adversaries.",https://atlas.mitre.org/techniques/AML.T0056,14 March 2025,14 March 2025,Exfiltration,ATLAS
+AML.T0024.002,attack-pattern--9ab0c79a-4dcf-4270-a272-af080402402d,Extract ML Model,"Adversaries may extract a functional copy of a private model.
+By repeatedly querying the victim's [AI Model Inference API Access](/techniques/AML.T0040), the adversary can collect the target model's inferences into a dataset.
+The inferences are used as labels for training a separate model offline that will mimic the behavior and performance of the target model.
+
+Adversaries may extract the model to avoid paying per query in a machine learning as a service setting.
+Model extraction is used for [ML Intellectual Property Theft](/techniques/AML.T0048.004).
+",https://atlas.mitre.org/techniques/AML.T0024.002,14 March 2025,14 March 2025,Exfiltration,ATLAS
+AML.T0071,attack-pattern--96d40a8c-f6ff-4f15-97b0-aa2b678fd743,False RAG Entry Injection,"Adversaries may introduce false entries into a victim's retrieval augmented generation (RAG) database. Content designed to be interpreted as a document by the large language model (LLM) used in the RAG system is included in a data source being ingested into the RAG database. When RAG entry including the false document is retrieved the, the LLM is tricked into treating part of the retrieved content as a false RAG result. 
+
+By including a false RAG document inside of a regular RAG entry, it bypasses data monitoring tools. It also prevents the document from being deleted directly. 
+
+The adversary may use discovered system keywords to learn how to instruct a particular LLM to treat content as a RAG entry. They may be able to manipulate the injected entry's metadata including document title, author, and creation date.",https://atlas.mitre.org/techniques/AML.T0071,14 March 2025,14 March 2025,Defense Evasion,ATLAS
+AML.T0048.000,attack-pattern--968c7b7f-6bb4-4d0e-bbab-3098ce12b4ce,Financial Harm,"Financial harm involves the loss of wealth, property, or other monetary assets due to theft, fraud or forgery, or pressure to provide financial resources to the adversary.
+",https://atlas.mitre.org/techniques/AML.T0048.000,14 March 2025,14 March 2025,Impact,ATLAS
+AML.T0044,attack-pattern--07ebffc5-e98e-4330-bf94-7f0c56b16345,Full ML Model Access,"Adversaries may gain full ""white-box"" access to a machine learning model.
+This means the adversary has complete knowledge of the model architecture, its parameters, and class ontology.
+They may exfiltrate the model to [Craft Adversarial Data](/techniques/AML.T0043) and [Verify Attack](/techniques/AML.T0042) in an offline where it is hard to detect their behavior.
+",https://atlas.mitre.org/techniques/AML.T0044,14 March 2025,14 March 2025,ML Model Access,ATLAS
+AML.T0064,attack-pattern--5eb94c9f-0db2-4f09-9458-60467f9daeb2,Gather RAG-Indexed Targets,"Adversaries may identify data sources used in retrieval augmented generation (RAG) systems for targeting purposes. By pinpointing these sources, attackers can focus on poisoning or otherwise manipulating the external data repositories the AI relies on.
+
+RAG-indexed data may be identified in public documentation about the system, or by interacting with the system directly and observing any indications of or references to external data sources.",https://atlas.mitre.org/techniques/AML.T0064,14 March 2025,14 March 2025,Reconnaissance,ATLAS
+AML.T0016.002,attack-pattern--55906ca3-dcfa-46d0-ade8-da3c6554984d,Generative AI,"Adversaries may search for and obtain generative AI models or tools, such as large language models (LLMs), to assist them in various steps of their operation. Generative AI can be used in a variety of malicious ways, including generating malware or offensive cyber scripts, [Retrieval Content Crafting](/techniques/AML.T0066), or generating [Phishing](/techniques/AML.T0052) content.
+
+Adversaries may obtain an open source model or they may leverage a generative AI service. They may need to jailbreak the generative AI model to bypass any restrictions put in place to limit the types of responses it can generate. They may also need to break the terms of service of the generative AI.",https://atlas.mitre.org/techniques/AML.T0016.002,14 March 2025,14 March 2025,Discovery,ATLAS
+AML.T0010.000,attack-pattern--39d1fb41-32e9-4909-bc4d-acb4751b118b,Hardware,"Adversaries may target AI systems by disrupting or manipulating the hardware supply chain. AI models often run on specialized hardware such as GPUs, TPUs, or embedded devices, but may also be optimized to operate on CPUs.",https://atlas.mitre.org/techniques/AML.T0010.000,14 March 2025,14 March 2025,Initial Access,ATLAS
+AML.T0051.001,attack-pattern--3897f551-0533-4714-b8de-47e3879e42ae,Indirect,"An adversary may inject prompts indirectly via separate data channel ingested by the LLM such as include text or multimedia pulled from databases or websites.
+These malicious prompts may be hidden or obfuscated from the user. This type of injection may be used by the adversary to gain a foothold in the system or to target an unwitting user of the system.
+",https://atlas.mitre.org/techniques/AML.T0051.001,14 March 2025,14 March 2025,Execution,ATLAS
+AML.T0024.000,attack-pattern--02c2f3c6-678a-40f7-997b-a3faa54a5760,Infer Training Data Membership,"Adversaries may infer the membership of a data sample in its training set, which raises privacy concerns.
+Some strategies make use of a shadow model that could be obtained via [Train Proxy via Replication](/techniques/AML.T0005.001), others use statistics of model prediction scores.
+
+This can cause the victim model to leak private information, such as PII of those in the training set or other forms of protected IP.
+",https://atlas.mitre.org/techniques/AML.T0024.000,14 March 2025,14 March 2025,Exfiltration,ATLAS
+AML.T0018.001,attack-pattern--294fe4dc-ac27-4b40-ae40-8148b9876f25,Inject Payload,"Adversaries may introduce a backdoor into a model by injecting a payload into the model file.
+The payload detects the presence of the trigger and bypasses the model, instead producing the adversary's desired output.
+",https://atlas.mitre.org/techniques/AML.T0018.001,14 March 2025,14 March 2025,"ML Attack Staging, Persistence",ATLAS
+AML.T0043.004,attack-pattern--09d078c4-833c-4d5c-a69c-5066d8c6917b,Insert Backdoor Trigger,"The adversary may add a perceptual trigger into inference data.
+The trigger may be imperceptible or non-obvious to humans.
+This technique is used in conjunction with [Poison ML Model](/techniques/AML.T0018.000) and allows the adversary to produce their desired effect in the target model.
+",https://atlas.mitre.org/techniques/AML.T0043.004,14 March 2025,14 March 2025,ML Attack Staging,ATLAS
+AML.T0024.001,attack-pattern--93c93189-92f6-4485-8ddf-6c5e501f416f,Invert ML Model,"Machine learning models' training data could be reconstructed by exploiting the confidence scores that are available via an inference API.
+By querying the inference API strategically, adversaries can back out potentially private information embedded within the training data.
+This could lead to privacy violations if the attacker can reconstruct the data of sensitive features used in the algorithm.
+",https://atlas.mitre.org/techniques/AML.T0024.001,14 March 2025,14 March 2025,Exfiltration,ATLAS
+AML.T0000.000,attack-pattern--78f299a3-0032-47c4-8841-aa9f8c226398,Journals and Conference Proceedings,"Many of the publications accepted at premier machine learning conferences and journals come from commercial labs.
+Some journals and conferences are open access, others may require paying for access or a membership.
+These publications will often describe in detail all aspects of a particular approach for reproducibility.
+This information can be used by adversaries to implement the paper.
+",https://atlas.mitre.org/techniques/AML.T0000.000,14 March 2025,14 March 2025,Reconnaissance,ATLAS
+AML.T0057,attack-pattern--ab05c807-8854-40d8-a20e-28edae445c80,LLM Data Leakage,"Adversaries may craft prompts that induce the LLM to leak sensitive information.
+This can include private user data or proprietary information.
+The leaked information may come from proprietary training data, data sources the LLM is connected to, or information from other users of the LLM.
+",https://atlas.mitre.org/techniques/AML.T0057,14 March 2025,14 March 2025,Exfiltration,ATLAS
+AML.T0054,attack-pattern--8bc3f855-f8ba-46c1-85a7-a036679ed8b6,LLM Jailbreak,"An adversary may use a carefully crafted [LLM Prompt Injection](/techniques/AML.T0051) designed to place LLM in a state in which it will freely respond to any user input, bypassing any controls, restrictions, or guardrails placed on the LLM.
+Once successfully jailbroken, the LLM can be used in unintended ways by the adversary.
+",https://atlas.mitre.org/techniques/AML.T0054,14 March 2025,14 March 2025,"Defense Evasion, Privilege Escalation",ATLAS
+AML.T0053,attack-pattern--151bebab-0e27-442b-838e-bb0d9a36c32f,LLM Plugin Compromise,"Adversaries may use their access to an LLM that is part of a larger system to compromise connected plugins.
+LLMs are often connected to other services or resources via plugins to increase their capabilities.
+Plugins may include integrations with other applications, access to public or private data sources, and the ability to execute code.
+
+This may allow adversaries to execute API calls to integrated applications or plugins, providing the adversary with increased privileges on the system.
+Adversaries may take advantage of connected data sources to retrieve sensitive information.
+They may also use an LLM integrated with a command or script interpreter to execute arbitrary instructions.
+",https://atlas.mitre.org/techniques/AML.T0053,14 March 2025,14 March 2025,"Execution, Privilege Escalation",ATLAS
+AML.T0065,attack-pattern--8dee1775-3523-439c-948d-99a5387645f9,LLM Prompt Crafting,"Adversaries may use their acquired knowledge of the target generative AI system to craft prompts that bypass its defenses and allow malicious instructions to be executed.
+
+The adversary may iterate on the prompt to ensure that it works as-intended consistently.",https://atlas.mitre.org/techniques/AML.T0065,14 March 2025,14 March 2025,Resource Development,ATLAS
+AML.T0051,attack-pattern--f9eddd08-a29a-4598-80a4-171d456be7c7,LLM Prompt Injection,"An adversary may craft malicious prompts as inputs to an LLM that cause the LLM to act in unintended ways.
+These ""prompt injections"" are often designed to cause the model to ignore aspects of its original instructions and follow the adversary's instructions instead.
+
+Prompt Injections can be an initial access vector to the LLM that provides the adversary with a foothold to carry out other steps in their operation.
+They may be designed to bypass defenses in the LLM, or allow the adversary to issue privileged commands.
+The effects of a prompt injection can persist throughout an interactive session with an LLM.
+
+Malicious prompts may be injected directly by the adversary ([Direct](/techniques/AML.T0051.000)) either to leverage the LLM to generate harmful content or to gain a foothold on the system and lead to further effects.
+Prompts may also be injected indirectly when as part of its normal operation the LLM ingests the malicious prompt from another data source ([Indirect](/techniques/AML.T0051.001)). This type of injection can be used by the adversary to a foothold on the system or to target the user of the LLM.
+",https://atlas.mitre.org/techniques/AML.T0051,14 March 2025,14 March 2025,Execution,ATLAS
+AML.T0068,attack-pattern--135cc710-eaed-4a45-828b-651a3cc78a72,LLM Prompt Obfuscation,"Adversaries may hide or otherwise obfuscate prompt injections or retrieval content from the user to avoid detection.
+
+This may include modifying how the injection is rendered such as small text, text colored the same as the background, or hidden HTML elements.",https://atlas.mitre.org/techniques/AML.T0068,14 March 2025,14 March 2025,Defense Evasion,ATLAS
+AML.T0061,attack-pattern--e50d39d3-4be4-465a-8b98-e35c1637a898,LLM Prompt Self-Replication,"An adversary may use a carefully crafted [LLM Prompt Injection](/techniques/AML.T0051) designed to cause the LLM to replicate the prompt as part of its output. This allows the prompt to propagate to other LLMs and persist on the system. The self-replicating prompt is typically paired with other malicious instructions (ex: [LLM Jailbreak](/techniques/AML.T0054), [LLM Data Leakage](/techniques/AML.T0057)).",https://atlas.mitre.org/techniques/AML.T0061,14 March 2025,14 March 2025,Persistence,ATLAS
+AML.T0067,attack-pattern--b91523ae-ada9-4ad1-a112-0113f29462fd,LLM Trusted Output Components Manipulation,"Adversaries may utilize prompts to a large language model (LLM) which manipulate various components of its response in order to make it appear trustworthy to the user. This helps the adversary continue to operate in the victim's environment and evade detection by the users it interacts with.
+
+The LLM may be instructed to tailor its language to appear more trustworthy to the user or attempt to manipulate the user to take certain actions. Other response components that could be manipulated include links, recommended follow-up actions, retrieved document metadata, and [Citations](/techniques/AML.T0067.000).",https://atlas.mitre.org/techniques/AML.T0067,14 March 2025,14 March 2025,Defense Evasion,ATLAS
+AML.T0035,attack-pattern--6a67aef8-329e-4669-84bd-c1aa0a67ac68,ML Artifact Collection,"Adversaries may collect ML artifacts for [Exfiltration](/tactics/AML.TA0010) or for use in [ML Attack Staging](/tactics/AML.TA0001).
+ML artifacts include models and datasets as well as other telemetry data produced when interacting with a model.
+",https://atlas.mitre.org/techniques/AML.T0035,14 March 2025,14 March 2025,Collection,ATLAS
+AML.T0008.000,attack-pattern--73458135-2102-4753-ad0a-f74ae73c4038,ML Development Workspaces,"Developing and staging machine learning attacks often requires expensive compute resources.
+Adversaries may need access to one or many GPUs in order to develop an attack.
+They may try to anonymously use free resources such as Google Colaboratory, or cloud resources such as AWS, Azure, or Google Cloud as an efficient way to stand up temporary resources to conduct operations.
+Multiple workspaces may be used to avoid detection.
+",https://atlas.mitre.org/techniques/AML.T0008.000,14 March 2025,14 March 2025,Resource Development,ATLAS
+AML.T0048.004,attack-pattern--7360aac5-ab15-4d95-ab5e-bef1af305788,ML Intellectual Property Theft,"Adversaries may exfiltrate ML artifacts to steal intellectual property and cause economic harm to the victim organization.
+
+Proprietary training data is costly to collect and annotate and may be a target for [Exfiltration](/tactics/AML.TA0010) and theft.
+
+MLaaS providers charge for use of their API.
+An adversary who has stolen a model via [Exfiltration](/tactics/AML.TA0010) or via [Extract ML Model](/techniques/AML.T0024.002) now has unlimited use of that service without paying the owner of the intellectual property.
+",https://atlas.mitre.org/techniques/AML.T0048.004,14 March 2025,14 March 2025,Impact,ATLAS
+AML.T0010.001,attack-pattern--f9590f8d-cb5f-47ba-a25d-76a237dd8904,ML Software,"Most machine learning systems rely on a limited set of machine learning frameworks.
+An adversary could get access to a large number of machine learning systems through a comprise of one of their supply chains.
+Many machine learning projects also rely on other open source implementations of various algorithms.
+These can also be compromised in a targeted way to get access to specific systems.
+",https://atlas.mitre.org/techniques/AML.T0010.001,14 March 2025,14 March 2025,Initial Access,ATLAS
+AML.T0010,attack-pattern--a4783291-4917-4ea8-8f34-b9b6180ae332,ML Supply Chain Compromise,"Adversaries may gain initial access to a system by compromising the unique portions of the ML supply chain.
+This could include [Hardware](/techniques/AML.T0010.000), [Data](/techniques/AML.T0010.002) and its annotations, parts of the ML [ML Software](/techniques/AML.T0010.001) stack, or the [Model](/techniques/AML.T0010.003) itself.
+In some instances the attacker will need secondary access to fully carry out an attack using compromised components of the supply chain.
+",https://atlas.mitre.org/techniques/AML.T0010,14 March 2025,14 March 2025,Initial Access,ATLAS
+AML.T0047,attack-pattern--e4653a0a-5832-4c26-ab98-e31a31936085,ML-Enabled Product or Service,"Adversaries may use a product or service that uses machine learning under the hood to gain access to the underlying machine learning model.
+This type of indirect model access may reveal details of the ML model or its inferences in logs or metadata.
+",https://atlas.mitre.org/techniques/AML.T0047,14 March 2025,14 March 2025,ML Model Access,ATLAS
+AML.T0011.001,attack-pattern--f2d925fe-4436-4d33-83b1-2d4ee500c2cc,Malicious Package,"Adversaries may develop malicious software packages that when imported by a user have a deleterious effect.
+Malicious packages may behave as expected to the user. They may be introduced via [ML Supply Chain Compromise](/techniques/AML.T0010). They may not present as obviously malicious to the user and may appear to be useful for an AI-related task.",https://atlas.mitre.org/techniques/AML.T0011.001,14 March 2025,14 March 2025,Impact,ATLAS
+AML.T0043.003,attack-pattern--a3263fd3-29c5-4881-84f8-fc72d3c91c71,Manual Modification,"Adversaries may manually modify the input data to craft adversarial data.
+They may use their knowledge of the target model to modify parts of the data they suspect helps the model in performing its task.
+The adversary may use trial and error until they are able to verify they have a working adversarial input.
+",https://atlas.mitre.org/techniques/AML.T0043.003,14 March 2025,14 March 2025,ML Attack Staging,ATLAS
+AML.T0010.003,attack-pattern--d3301bd5-0f28-4604-a167-15aa4f17160d,Model,"Machine learning systems often rely on open sourced models in various ways.
+Most commonly, the victim organization may be using these models for fine tuning.
+These models will be downloaded from an external source and then used as the base for the model as it is tuned on a smaller, private dataset.
+Loading models often requires executing some saved code in the form of a saved model file.
+These can be compromised with traditional malware, or through some adversarial machine learning techniques.
+",https://atlas.mitre.org/techniques/AML.T0010.003,14 March 2025,14 March 2025,Initial Access,ATLAS
+AML.T0002.001,attack-pattern--784cbb90-b5f0-47d1-af8c-d299c5b3c551,Models,"Adversaries may acquire public models to use in their operations.
+Adversaries may seek models used by the victim organization or models that are representative of those used by the victim organization.
+Representative models may include model architectures, or pre-trained models which define the architecture as well as model parameters from training on a dataset.
+The adversary may search public sources for common model architecture configuration file formats such as YAML or Python configuration files, and common model storage file formats such as ONNX (.onnx), HDF5 (.h5), Pickle (.pkl), PyTorch (.pth), or TensorFlow (.pb, .tflite).
+
+Acquired models are useful in advancing the adversary's operations and are frequently used to tailor attacks to the victim model.
+",https://atlas.mitre.org/techniques/AML.T0002.001,14 March 2025,14 March 2025,Resource Development,ATLAS
+AML.T0016,attack-pattern--17b04e23-b6a0-4e72-9094-dc9677d07436,Obtain Capabilities,"Adversaries may search for and obtain software capabilities for use in their operations.
+Capabilities may be specific to ML-based attacks [Adversarial ML Attack Implementations](/techniques/AML.T0016.000) or generic software tools repurposed for malicious intent ([Software Tools](/techniques/AML.T0016.001)). In both instances, an adversary may modify or customize the capability to aid in targeting a particular ML system.",https://atlas.mitre.org/techniques/AML.T0016,14 March 2025,14 March 2025,Resource Development,ATLAS
+AML.T0052,attack-pattern--1c639b2f-42ad-4613-958d-507b7270ee6a,Phishing,"Adversaries may send phishing messages to gain access to victim systems. All forms of phishing are electronically delivered social engineering. Phishing can be targeted, known as spearphishing. In spearphishing, a specific individual, company, or industry will be targeted by the adversary. More generally, adversaries can conduct non-targeted phishing, such as in mass malware spam campaigns.
+
+Generative AI, including LLMs that generate synthetic text, visual deepfakes of faces, and audio deepfakes of speech, is enabling adversaries to scale targeted phishing campaigns. LLMs can interact with users via text conversations and can be programmed with a meta prompt to phish for sensitive information. Deepfakes can be use in impersonation as an aid to phishing.
+",https://atlas.mitre.org/techniques/AML.T0052,14 March 2025,14 March 2025,Initial Access,ATLAS
+AML.T0008.003,attack-pattern--b7cb2827-30e5-4d66-b092-f26fbbbdfa18,Physical Countermeasures,"Adversaries may acquire or manufacture physical countermeasures to aid or support their attack.
+
+These components may be used to disrupt or degrade the model, such as adversarial patterns printed on stickers or T-shirts, disguises, or decoys. They may also be used to disrupt or degrade the sensors used in capturing data, such as laser pointers, light bulbs, or other tools.",https://atlas.mitre.org/techniques/AML.T0008.003,14 March 2025,14 March 2025,Discovery,ATLAS
+AML.T0041,attack-pattern--2693de2c-725f-4d66-abb2-a940efcff1b5,Physical Environment Access,"In addition to the attacks that take place purely in the digital domain, adversaries may also exploit the physical environment for their attacks.
+If the model is interacting with data collected from the real world in some way, the adversary can influence the model through access to wherever the data is being collected.
+By modifying the data in the collection process, the adversary can perform modified versions of attacks designed for digital access.
+",https://atlas.mitre.org/techniques/AML.T0041,14 March 2025,14 March 2025,ML Model Access,ATLAS
+AML.T0018.000,attack-pattern--c44decce-8b70-4f42-a5e0-db0bb105d0b4,Poison ML Model,"Adversaries may introduce a backdoor by training the model poisoned data, or by interfering with its training process.
+The model learns to associate an adversary-defined trigger with the adversary's desired output.
+",https://atlas.mitre.org/techniques/AML.T0018.000,14 March 2025,14 March 2025,"ML Attack Staging, Persistence",ATLAS
+AML.T0020,attack-pattern--d63c873b-7e01-437d-98ef-d681099c3377,Poison Training Data,"Adversaries may attempt to poison datasets used by a ML model by modifying the underlying data or its labels.
+This allows the adversary to embed vulnerabilities in ML models trained on the data that may not be easily detectable.
+Data poisoning attacks may or may not require modifying the labels.
+The embedded vulnerability is activated at a later time by data samples with an [Insert Backdoor Trigger](/techniques/AML.T0043.004)
+
+Poisoned data can be introduced via [ML Supply Chain Compromise](/techniques/AML.T0010) or the data may be poisoned after the adversary gains [Initial Access](/tactics/AML.TA0004) to the system.
+",https://atlas.mitre.org/techniques/AML.T0020,14 March 2025,14 March 2025,"Persistence, Resource Development",ATLAS
+AML.T0000.001,attack-pattern--a0b808b3-648d-4fd3-91d1-6b3baab37832,Pre-Print Repositories,"Pre-Print repositories, such as arXiv, contain the latest academic research papers that haven't been peer reviewed.
+They may contain research notes, or technical reports that aren't typically published in journals or conference proceedings.
+Pre-print repositories also serve as a central location to share papers that have been accepted to journals.
+Searching pre-print repositories  provide adversaries with a relatively up-to-date view of what researchers in the victim organization are working on.
+",https://atlas.mitre.org/techniques/AML.T0000.001,14 March 2025,14 March 2025,Reconnaissance,ATLAS
+AML.T0060,attack-pattern--4f65193d-97ad-4231-8934-f5f7c7e7237f,Publish Hallucinated Entities,"Adversaries may create an entity they control, such as a software package, website, or email address to a source hallucinated by an LLM. The hallucinations may take the form of package names commands, URLs, company names, or email addresses that point the victim to the entity controlled by the adversary. When the victim interacts with the adversary-controlled entity, the attack can proceed.",https://atlas.mitre.org/techniques/AML.T0060,14 March 2025,14 March 2025,Resource Development,ATLAS
+AML.T0019,attack-pattern--89461ddf-4d27-40e7-ba53-8221012fe9c1,Publish Poisoned Datasets,"Adversaries may [Poison Training Data](/techniques/AML.T0020) and publish it to a public location.
+The poisoned dataset may be a novel dataset or a poisoned variant of an existing open source dataset.
+This data may be introduced to a victim system via [ML Supply Chain Compromise](/techniques/AML.T0010).
+",https://atlas.mitre.org/techniques/AML.T0019,14 March 2025,14 March 2025,Resource Development,ATLAS
+AML.T0058,attack-pattern--97fe9577-c7ed-466d-817d-697f815db7b0,Publish Poisoned Models,Adversaries may publish a poisoned model to a public location such as a model registry or code repository. The poisoned model may be a novel model or a poisoned variant of an existing open-source model. This model may be introduced to a victim system via [ML Supply Chain Compromise](/techniques/AML.T0010).,https://atlas.mitre.org/techniques/AML.T0058,14 March 2025,14 March 2025,Resource Development,ATLAS
+AML.T0070,attack-pattern--3898e02f-8eda-4360-aba5-9ee37943538c,RAG Poisoning,"Adversaries may inject malicious content into data indexed by a retrieval augmented generation (RAG) system to contaminate a future thread through RAG-based search results. This may be accomplished by placing manipulated documents in a location the RAG indexes (see [Gather RAG-Indexed Targets](/techniques/AML.T0064)).
+
+The content may be targeted such that it would always surface as a search result for a specific user query. The adversary's content may include false or misleading information. It may also include prompt injections with malicious instructions, or false RAG entries.",https://atlas.mitre.org/techniques/AML.T0070,14 March 2025,14 March 2025,Persistence,ATLAS
+AML.T0048.001,attack-pattern--b32fbde1-97bc-41a1-bcea-04d32aa7e44e,Reputational Harm,"Reputational harm involves a degradation of public perception and trust in organizations.  Examples of reputation-harming incidents include scandals or false impersonations.
+",https://atlas.mitre.org/techniques/AML.T0048.001,14 March 2025,14 March 2025,Impact,ATLAS
+AML.T0066,attack-pattern--1c02a88b-8f6c-45f3-bcc8-8045a74d9103,Retrieval Content Crafting,"Adversaries may write content designed to be retrieved by user queries and influence a user of the system in some way. This abuses the trust the user has in the system.
+
+The crafted content can be combined with a prompt injection. It can also stand alone in a separate document or email. The adversary must get the crafted content into the victim\u0027s database, such as a vector database used in a retrieval augmented generation (RAG) system. This may be accomplished via cyber access, or by abusing the ingestion mechanisms common in RAG systems (see [RAG Poisoning](/techniques/AML.T0070)).
+
+Large language models may be used as an assistant to aid an adversary in crafting content.",https://atlas.mitre.org/techniques/AML.T0066,14 March 2025,14 March 2025,Resource Development,ATLAS
+AML.T0004,attack-pattern--6f3e625e-3157-4b30-bb7f-f8f25b21c8dc,Search Application Repositories,"Adversaries may search open application repositories during targeting.
+Examples of these include Google Play, the iOS App store, the macOS App Store, and the Microsoft Store.
+
+Adversaries may craft search queries seeking applications that contain a ML-enabled components.
+Frequently, the next step is to [Acquire Public ML Artifacts](/techniques/AML.T0002).
+",https://atlas.mitre.org/techniques/AML.T0004,14 March 2025,14 March 2025,Reconnaissance,ATLAS
+AML.T0003,attack-pattern--d886ab0c-9c92-40f6-aad8-930476504be8,Search Victim-Owned Websites,"Adversaries may search websites owned by the victim for information that can be used during targeting.
+Victim-owned websites may contain technical details about their ML-enabled products or services.
+Victim-owned websites may contain a variety of details, including names of departments/divisions, physical locations, and data about key employees such as names, roles, and contact info.
+These sites may also have details highlighting business operations and relationships.
+
+Adversaries may search victim-owned websites to gather actionable information.
+This information may help adversaries tailor their attacks (e.g. [Adversarial ML Attacks](/techniques/AML.T0017.000) or [Manual Modification](/techniques/AML.T0043.003)).
+Information from these sources may reveal opportunities for other forms of reconnaissance (e.g. [Search for Victim's Publicly Available Research Materials](/techniques/AML.T0000) or [Search for Publicly Available Adversarial Vulnerability Analysis](/techniques/AML.T0001))
+",https://atlas.mitre.org/techniques/AML.T0003,14 March 2025,14 March 2025,Reconnaissance,ATLAS
+AML.T0001,attack-pattern--9c9e3e54-a786-4511-a4c5-62f3e216febe,Search for Publicly Available Adversarial Vulnerability Analysis,"Much like the [Search for Victim's Publicly Available Research Materials](/techniques/AML.T0000), there is often ample research available on the vulnerabilities of common models. Once a target has been identified, an adversary will likely try to identify any pre-existing work that has been done for this class of models.
+This will include not only reading academic papers that may identify the particulars of a successful attack, but also identifying pre-existing implementations of those attacks. The adversary may obtain [Adversarial ML Attack Implementations](/techniques/AML.T0016.000) or develop their own [Adversarial ML Attacks](/techniques/AML.T0017.000) if necessary.",https://atlas.mitre.org/techniques/AML.T0001,14 March 2025,14 March 2025,Reconnaissance,ATLAS
+AML.T0000,attack-pattern--0e9e22e3-9b1e-4a9d-8ff6-da7ba7b9018f,Search for Victim's Publicly Available Research Materials,"Adversaries may search publicly available research to learn how and where machine learning is used within a victim organization.
+The adversary can use this information to identify targets for attack, or to tailor an existing attack to make it more effective.
+Organizations often use open source model architectures trained on additional proprietary data in production.
+Knowledge of this underlying architecture allows the adversary to craft more realistic proxy models ([Create Proxy ML Model](/techniques/AML.T0005)).
+An adversary can search these resources for publications for authors employed at the victim organization.
+
+Research materials may exist as academic papers published in [Journals and Conference Proceedings](/techniques/AML.T0000.000), or stored in [Pre-Print Repositories](/techniques/AML.T0000.001), as well as [Technical Blogs](/techniques/AML.T0000.002).
+",https://atlas.mitre.org/techniques/AML.T0000,14 March 2025,14 March 2025,Reconnaissance,ATLAS
+AML.T0048.002,attack-pattern--3d0887a8-d7fa-4820-96b9-ab087f6cd70b,Societal Harm,"Societal harms might generate harmful outcomes that reach either the general public or specific vulnerable groups such as the exposure of children to vulgar content.
+",https://atlas.mitre.org/techniques/AML.T0048.002,14 March 2025,14 March 2025,Impact,ATLAS
+AML.T0016.001,attack-pattern--f0b63383-fff7-499c-9dce-56e0d9f87742,Software Tools,"Adversaries may search for and obtain software tools to support their operations.
+Software designed for legitimate use may be repurposed by an adversary for malicious intent.
+An adversary may modify or customize software tools to achieve their purpose.
+Software tools used to support attacks on ML systems are not necessarily ML-based themselves.
+",https://atlas.mitre.org/techniques/AML.T0016.001,14 March 2025,14 March 2025,Resource Development,ATLAS
+AML.T0046,attack-pattern--5d68a5e9-942d-4213-9c6c-ac27d9fb786c,Spamming ML System with Chaff Data,"Adversaries may spam the machine learning system with chaff data that causes increase in the number of detections.
+This can cause analysts at the victim organization to waste time reviewing and correcting incorrect inferences.
+",https://atlas.mitre.org/techniques/AML.T0046,14 March 2025,14 March 2025,Impact,ATLAS
+AML.T0052.000,attack-pattern--c0fc514b-0748-4a53-8a45-4fde867c8ef1,Spearphishing via Social Engineering LLM,"Adversaries may turn LLMs into targeted social engineers.
+LLMs are capable of interacting with users via text conversations.
+They can be instructed by an adversary to seek sensitive information from a user and act as effective social engineers.
+They can be targeted towards particular personas defined by the adversary.
+This allows adversaries to scale spearphishing efforts and target individuals to reveal private information such as credentials to privileged systems.
+",https://atlas.mitre.org/techniques/AML.T0052.000,14 March 2025,14 March 2025,Initial Access,ATLAS
+AML.T0069.000,attack-pattern--e871484e-8be8-4b75-9ec4-a6a494282bcd,Special Character Sets,"Adversaries may discover delimiters and special characters sets used by the large language model. For example, delimiters used in retrieval augmented generation applications to differentiate between context and user prompts. These can later be exploited to confuse or manipulate the large language model into misbehaving.",https://atlas.mitre.org/techniques/AML.T0069.000,14 March 2025,14 March 2025,Discovery,ATLAS
+AML.T0069.001,attack-pattern--0599abae-6ad1-439f-8c53-63d24e0c940a,System Instruction Keywords,"Adversaries may discover keywords that have special meaning to the large language model (LLM), such as function names or object names. These can later be exploited to confuse or manipulate the LLM into misbehaving and to make calls to plugins the LLM has access to.",https://atlas.mitre.org/techniques/AML.T0069.001,14 March 2025,14 March 2025,Discovery,ATLAS
+AML.T0069.002,attack-pattern--338ed75b-40fc-40b9-9880-e4c9c9f98674,System Prompt,Adversaries may discover a large language model's system instructions provided by the AI system builder to learn about the system's capabilities and circumvent its guardrails.,https://atlas.mitre.org/techniques/AML.T0069.002,14 March 2025,14 March 2025,Discovery,ATLAS
+AML.T0000.002,attack-pattern--620feb23-65d5-4b26-a0c4-d38cbd397258,Technical Blogs,"Research labs at academic institutions and Company R&D divisions often have blogs that highlight their use of machine learning and its application to the organizations unique problems.
+Individual researchers also frequently document their work in blogposts.
+An adversary may search for posts made by the target victim organization or its employees.
+In comparison to [Journals and Conference Proceedings](/techniques/AML.T0000.000) and [Pre-Print Repositories](/techniques/AML.T0000.001) this material will often contain more practical aspects of the machine learning system.
+This could include underlying technologies and frameworks used, and possibly some information about the API access and use case.
+This will help the adversary better understand how that organization is using machine learning internally and the details of their approach that could aid in tailoring an attack.
+",https://atlas.mitre.org/techniques/AML.T0000.002,14 March 2025,14 March 2025,Reconnaissance,ATLAS
+AML.T0005.000,attack-pattern--8e6e76e6-3e86-4317-ac4c-197a104d937a,Train Proxy via Gathered ML Artifacts,"Proxy models may be trained from ML artifacts (such as data, model architectures, and pre-trained models) that are representative of the target model gathered by the adversary.
+This can be used to develop attacks that require higher levels of access than the adversary has available or as a means to validate pre-existing attacks without interacting with the target model.
+",https://atlas.mitre.org/techniques/AML.T0005.000,14 March 2025,14 March 2025,ML Attack Staging,ATLAS
+AML.T0005.001,attack-pattern--f9408f13-6211-4259-85e1-794dc96a6100,Train Proxy via Replication,"Adversaries may replicate a private model.
+By repeatedly querying the victim's [AI Model Inference API Access](/techniques/AML.T0040), the adversary can collect the target model's inferences into a dataset.
+The inferences are used as labels for training a separate model offline that will mimic the behavior and performance of the target model.
+
+A replicated model that closely mimic's the target model is a valuable resource in staging the attack.
+The adversary can use the replicated model to [Craft Adversarial Data](/techniques/AML.T0043) for various purposes (e.g. [Evade ML Model](/techniques/AML.T0015), [Spamming ML System with Chaff Data](/techniques/AML.T0046)).
+",https://atlas.mitre.org/techniques/AML.T0005.001,14 March 2025,14 March 2025,ML Attack Staging,ATLAS
+AML.T0011.000,attack-pattern--df46bcf0-0231-413c-9661-7f7d0e39b63e,Unsafe ML Artifacts,"Adversaries may develop unsafe ML artifacts that when executed have a deleterious effect.
+The adversary can use this technique to establish persistent access to systems.
+These models may be introduced via a [ML Supply Chain Compromise](/techniques/AML.T0010).
+
+Serialization of models is a popular technique for model storage, transfer, and loading.
+However, this format without proper checking presents an opportunity for code execution.
+",https://atlas.mitre.org/techniques/AML.T0011.000,14 March 2025,14 March 2025,Execution,ATLAS
+AML.T0055,attack-pattern--3162b9bd-2bed-4d55-a1f5-7fb9ddccf609,Unsecured Credentials,"Adversaries may search compromised systems to find and obtain insecurely stored credentials.
+These credentials can be stored and/or misplaced in many locations on a system, including plaintext files (e.g. bash history), environment variables, operating system, or application-specific repositories (e.g. Credentials in Registry), or other specialized files/artifacts (e.g. private keys).
+",https://atlas.mitre.org/techniques/AML.T0055,14 March 2025,14 March 2025,Credential Access,ATLAS
+AML.T0005.002,attack-pattern--5f25a27a-5459-434a-81c7-633a2cb98521,Use Pre-Trained Model,"Adversaries may use an off-the-shelf pre-trained model as a proxy for the victim model to aid in staging the attack.
+",https://atlas.mitre.org/techniques/AML.T0005.002,14 March 2025,14 March 2025,ML Attack Staging,ATLAS
+AML.T0011,attack-pattern--fe45ad62-1ed6-45fb-a6ba-19140fed8cda,User Execution,"An adversary may rely upon specific actions by a user in order to gain execution.
+Users may inadvertently execute unsafe code introduced via [ML Supply Chain Compromise](/techniques/AML.T0010).
+Users may be subjected to social engineering to get them to execute malicious code by, for example, opening a malicious document file or link.
+",https://atlas.mitre.org/techniques/AML.T0011,14 March 2025,14 March 2025,Execution,ATLAS
+AML.T0048.003,attack-pattern--541403a4-65af-4190-bea8-5d8a01454d13,User Harm,"User harms may encompass a variety of harm types including financial and reputational that are directed at or felt by individual victims of the attack rather than at the organization level.
+",https://atlas.mitre.org/techniques/AML.T0048.003,14 March 2025,14 March 2025,Impact,ATLAS
+AML.T0012,attack-pattern--cf5dcf13-9ca9-475f-8544-eceae7503cdf,Valid Accounts,"Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access.
+Credentials may take the form of usernames and passwords of individual user accounts or API keys that provide access to various ML resources and services.
+
+Compromised credentials may provide access to additional ML artifacts and allow the adversary to perform [Discover ML Artifacts](/techniques/AML.T0007).
+Compromised credentials may also grant an adversary increased privileges such as write access to ML artifacts used during development or production.
+",https://atlas.mitre.org/techniques/AML.T0012,14 March 2025,14 March 2025,Initial Access,ATLAS
+AML.T0042,attack-pattern--8918438b-7422-4f85-b8c8-32d98b5439c6,Verify Attack,"Adversaries can verify the efficacy of their attack via an inference API or access to an offline copy of the target model.
+This gives the adversary confidence that their approach works and allows them to carry out the attack at a later time of their choosing.
+The adversary may verify the attack once but use it against many edge devices running copies of the target model.
+The adversary may verify their attack digitally, then deploy it in the [Physical Environment Access](/techniques/AML.T0041) at a later time.
+Verifying the attack may be hard to detect since the adversary can use a minimal number of queries or an offline copy of the model.
+",https://atlas.mitre.org/techniques/AML.T0042,14 March 2025,14 March 2025,ML Attack Staging,ATLAS
+AML.T0043.000,attack-pattern--4a040cc9-d53d-4fa3-948d-a1ff8f02e0eb,White-Box Optimization,"In White-Box Optimization, the adversary has full access to the target model and optimizes the adversarial example directly.
+Adversarial examples trained in this manner are most effective against the target model.
+",https://atlas.mitre.org/techniques/AML.T0043.000,14 March 2025,14 March 2025,ML Attack Staging,ATLAS

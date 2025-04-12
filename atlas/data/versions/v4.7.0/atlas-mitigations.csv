@@ -1,0 +1,65 @@
+﻿ID,STIX ID,name,description,url,created,last modified,relationship citations
+AML.M0023,course-of-action--1f63b56d-034f-477d-ab49-399c1aa1a22a,AI Bill of Materials,"An AI Bill of Materials (AI BOM) contains a full listing of artifacts and resources that were used in building the AI. The AI BOM can help mitigate supply chain risks and enable rapid response to reported vulnerabilities.
+
+This can include maintaining dataset provenance, i.e. a detailed history of datasets used for AI applications. The history can include information about the dataset source as well as well as a complete record of any modifications.",https://atlas.mitre.org/mitigations/AML.M0023,01 October 2024,01 October 2024,
+AML.M0024,course-of-action--fa5108b2-3dc8-42dc-93a3-902f1bf74521,AI Telemetry Logging,Implement logging of inputs and outputs of deployed AI models. Monitoring logs can help to detect security threats and mitigate impacts.,https://atlas.mitre.org/mitigations/AML.M0024,01 October 2024,01 October 2024,
+AML.M0015,course-of-action--0ed2ef71-cdc9-4eef-8432-1c3dadbdda20,Adversarial Input Detection,"Detect and block adversarial inputs or atypical queries that deviate from known benign behavior, exhibit behavior patterns observed in previous attacks or that come from potentially malicious IPs.
+Incorporate adversarial detection algorithms into the ML system prior to the ML model.
+",https://atlas.mitre.org/mitigations/AML.M0015,12 April 2023,12 October 2023,
+AML.M0013,course-of-action--88073b07-2fe9-41cb-8e76-6e244fbabc74,Code Signing,"Enforce binary and application integrity with digital signature verification to prevent untrusted code from executing. Adversaries can embed malicious code in ML software or models. Enforcement of code signing can prevent the compromise of the machine learning supply chain and prevent execution of malicious code.
+",https://atlas.mitre.org/mitigations/AML.M0013,12 April 2023,12 October 2023,
+AML.M0005,course-of-action--0025dadf-7900-497f-aa03-39f0e319f20e,Control Access to ML Models and Data at Rest,"Establish access controls on internal model registries and limit internal access to production models. Limit access to training data only to approved users.
+",https://atlas.mitre.org/mitigations/AML.M0005,12 April 2023,12 October 2023,
+AML.M0019,course-of-action--7b00dd51-f719-433d-afd6-3d386f64386d,Control Access to ML Models and Data in Production,"Require users to verify their identities before accessing a production model.
+Require authentication for API endpoints and monitor production model queries to ensure compliance with usage policies and to prevent model misuse.
+",https://atlas.mitre.org/mitigations/AML.M0019,12 January 2024,12 January 2024,
+AML.M0012,course-of-action--aad92d43-774b-4612-8437-8d6c7ee7e4af,Encrypt Sensitive Information,"Encrypt sensitive data such as ML models to protect against adversaries attempting to access sensitive data.
+",https://atlas.mitre.org/mitigations/AML.M0012,12 April 2023,12 October 2023,
+AML.M0020,course-of-action--b8511570-3320-4733-a0e1-134e376e7530,Generative AI Guardrails,"Guardrails are safety controls that are placed between a generative AI model and the output shared with the user to prevent undesired inputs and outputs.
+Guardrails can take the form of validators such as filters, rule-based logic, or regular expressions, as well as AI-based approaches, such as classifiers and utilizing LLMs, or named entity recognition (NER) to evaluate the safety of the prompt or response. Domain specific methods can be employed to reduce risks in a variety of areas such as etiquette, brand damage, jailbreaking, false information, code exploits, SQL injections, and data leakage.",https://atlas.mitre.org/mitigations/AML.M0020,01 October 2024,01 October 2024,
+AML.M0021,course-of-action--d55bd0c8-2db0-400b-9097-c7cec00e2b91,Generative AI Guidelines,"Guidelines are safety controls that are placed between user-provided input and a generative AI model to help direct the model to produce desired outputs and prevent undesired outputs.
+
+Guidelines can be implemented as instructions appended to all user prompts or as part of the instructions in the system prompt. They can define the goal(s), role, and voice of the system, as well as outline safety and security parameters.",https://atlas.mitre.org/mitigations/AML.M0021,01 October 2024,01 October 2024,
+AML.M0022,course-of-action--1fca595d-b140-4ce0-8fd8-c4c6bee87540,Generative AI Model Alignment,"When training or fine-tuning a generative AI model it is important to utilize techniques that improve model alignment with safety, security, and content policies.
+
+The fine-tuning process can potentially remove built-in safety mechanisms in a generative AI model, but utilizing techniques such as Supervised Fine-Tuning, Reinforcement Learning from Human Feedback or AI Feedback, and Targeted Safety Context Distillation can improve the safety and alignment of the model.",https://atlas.mitre.org/mitigations/AML.M0022,01 October 2024,01 October 2024,
+AML.M0010,course-of-action--73a34f24-1ad1-4421-b9c8-c2cbd13e6f47,Input Restoration,"Preprocess all inference data to nullify or reverse potential adversarial perturbations.
+",https://atlas.mitre.org/mitigations/AML.M0010,12 April 2023,12 October 2023,
+AML.M0001,course-of-action--79c75215-ada9-4c22-bfed-7d13fb6e966e,Limit Model Artifact Release,"Limit public release of technical project details including data, algorithms, model architectures, and model checkpoints that are used in production, or that are representative of those used in production.
+",https://atlas.mitre.org/mitigations/AML.M0001,12 April 2023,12 October 2023,
+AML.M0000,course-of-action--40076545-e797-4508-a294-943096a12111,Limit Public Release of Information,"Limit the public release of technical information about the machine learning stack used in an organization's products or services. Technical knowledge of how machine learning is used can be leveraged by adversaries to perform targeting and tailor attacks to the target system. Additionally, consider limiting the release of organizational information - including physical locations, researcher names, and department structures - from which technical details such as machine learning techniques, model architectures, or datasets may be inferred.",https://atlas.mitre.org/mitigations/AML.M0000,12 April 2023,01 October 2024,
+AML.M0025,course-of-action--005a5427-4b1e-41c2-a7aa-eda9ae9a9815,Maintain AI Dataset Provenance,Maintain a detailed history of datasets used for AI applications. The history should include information about the dataset's source as well as a complete record of any modifications.,https://atlas.mitre.org/mitigations/AML.M0025,01 October 2024,01 October 2024,
+AML.M0017,course-of-action--432c3a44-3974-4b73-9eb9-fa5dd5298e47,Model Distribution Methods,"Deploying ML models to edge devices can increase the attack surface of the system.
+Consider serving models in the cloud to reduce the level of access the adversary has to the model.
+Also consider computing features in the cloud to prevent gray-box attacks, where an adversary has access to the model preprocessing methods.
+",https://atlas.mitre.org/mitigations/AML.M0017,12 April 2023,12 January 2024,
+AML.M0003,course-of-action--216f862c-7f34-4676-a913-c4ec6cc4c2cd,Model Hardening,"Use techniques to make machine learning models robust to adversarial inputs such as adversarial training or network distillation.
+",https://atlas.mitre.org/mitigations/AML.M0003,12 April 2023,12 October 2023,
+AML.M0002,course-of-action--9f92e876-e2c0-4def-afee-626a4a79c524,Passive ML Output Obfuscation,"Decreasing the fidelity of model outputs provided to the end user can reduce an adversaries ability to extract information about the model and optimize attacks for the model.
+",https://atlas.mitre.org/mitigations/AML.M0002,12 April 2023,12 October 2023,
+AML.M0011,course-of-action--179e00cb-0948-4282-9132-f8a1f0ff6bd7,Restrict Library Loading,"Prevent abuse of library loading mechanisms in the operating system and software to load untrusted code by configuring appropriate library loading mechanisms and investigating potential vulnerable software.
+
+File formats such as pickle files that are commonly used to store machine learning models can contain exploits that allow for loading of malicious libraries.
+",https://atlas.mitre.org/mitigations/AML.M0011,12 April 2023,12 October 2023,
+AML.M0004,course-of-action--46b3e92d-600b-47c9-80f5-ed62a5db0377,Restrict Number of ML Model Queries,"Limit the total number and rate of queries a user can perform.
+",https://atlas.mitre.org/mitigations/AML.M0004,12 April 2023,12 October 2023,
+AML.M0007,course-of-action--9395d240-cc32-452a-911b-04feea01bcfb,Sanitize Training Data,"Detect and remove or remediate poisoned training data.  Training data should be sanitized prior to model training and recurrently for an active learning model.
+
+Implement a filter to limit ingested training data.  Establish a content policy that would remove unwanted content such as certain explicit or offensive language from being used.
+",https://atlas.mitre.org/mitigations/AML.M0007,12 April 2023,12 October 2023,
+AML.M0006,course-of-action--dcb586a2-1135-4e2a-97bd-d4adbc79758b,Use Ensemble Methods,"Use an ensemble of models for inference to increase robustness to adversarial inputs. Some attacks may effectively evade one model or model family but be ineffective against others.
+",https://atlas.mitre.org/mitigations/AML.M0006,12 April 2023,12 October 2023,
+AML.M0009,course-of-action--1bb9d9a7-c05a-470f-a709-64bd240e2eb0,Use Multi-Modal Sensors,"Incorporate multiple sensors to integrate varying perspectives and modalities to avoid a single point of failure susceptible to physical attacks.
+",https://atlas.mitre.org/mitigations/AML.M0009,12 April 2023,12 October 2023,
+AML.M0018,course-of-action--cce983e7-13a2-4545-8c39-ec6c8dff148d,User Training,"Educate ML model developers on secure coding practices and ML vulnerabilities.
+",https://atlas.mitre.org/mitigations/AML.M0018,12 April 2023,12 October 2023,
+AML.M0008,course-of-action--01c2ec0a-e257-4a75-9e59-f71aa6362b6e,Validate ML Model,"Validate that machine learning models perform as intended by testing for backdoor triggers or adversarial bias.
+Monitor model for concept drift and training data drift, which may indicate data tampering and poisoning.
+",https://atlas.mitre.org/mitigations/AML.M0008,12 April 2023,12 January 2024,
+AML.M0014,course-of-action--cdccb3ab-2dde-41a9-a988-783a25b7bd00,Verify ML Artifacts,"Verify the cryptographic checksum of all machine learning artifacts to verify that the file was not modified by an attacker.
+",https://atlas.mitre.org/mitigations/AML.M0014,12 April 2023,12 October 2023,
+AML.M0016,course-of-action--79752061-aac1-4ed9-b7f3-3b4dc5e81280,Vulnerability Scanning,"Vulnerability scanning is used to find potentially exploitable software vulnerabilities to remediate them.
+
+File formats such as pickle files that are commonly used to store machine learning models can contain exploits that allow for arbitrary code execution.
+Both model artifacts and downstream products produced by models should be scanned for known vulnerabilities.
+",https://atlas.mitre.org/mitigations/AML.M0016,12 April 2023,12 January 2024,
