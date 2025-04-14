@@ -7,12 +7,14 @@ ATLASを表現するクラス
 import os
 import re
 from collections.abc import Iterator, Sequence
+from contextlib import suppress
 from importlib.resources import files
 from pathlib import Path
 from typing import Literal, TypeVar
 
 import chromadb
 import polars as pl
+import yaml
 from chromadb.api.models.Collection import Collection
 from chromadb.errors import NotFoundError
 from chromadb.utils import embedding_functions
@@ -30,10 +32,11 @@ class AtlasTechnique:  # 1つのテクニックを表すクラス
         technique_id: str,
         description: str,
         *,
+        snake_case_name: str | None = None,
         have_parent: bool = False,
         parent_id: str | None = None,
         vector: list[float] | None = None,
-        tactics: list[str] | None = None,
+        tactics: list["AtlasTactic"] | None = None,
     ) -> None:
         self.name = name
         self.id = technique_id
@@ -41,7 +44,8 @@ class AtlasTechnique:  # 1つのテクニックを表すクラス
         self.have_parent = have_parent
         self.parent_id = parent_id
         self.description_vector = vector  # ベクトル化されたdesc
-        self.tactics = tactics  # list[string]
+        self.tactics = tactics  # tacticオブジェクト
+        self.snake_case_name = snake_case_name
 
     def clean_description(self, desc: str) -> str:  # リンクなどのノイズのみを削除する関数
         pattern = r"\[(.*?)\]\(.*?\)"  # リンク表現(表示される部分のみをキャプチャ)
@@ -50,11 +54,21 @@ class AtlasTechnique:  # 1つのテクニックを表すクラス
         return result
 
 
+class AtlasTactic:
+    def __init__(self, tactic_id: str, name: str, description: str, tec_lis: list[AtlasTechnique], *, snake_case_name: str | None = None) -> None:
+        self.id = tactic_id
+        self.name = name
+        self.snake_case_name = snake_case_name
+        self.description = description
+        self.technique_list = tec_lis  # list[AtlasTechnique]の形を保持したリスト
+
+
 class AtlasMitigation:  # 1つの緩和策を表すクラス
-    def __init__(self, mitigation_id: str, description: str, tec_lis: list[AtlasTechnique]) -> None:
+    def __init__(self, mitigation_id: str, description: str, tec_lis: list[AtlasTechnique], *, snake_case_name: str | None = None) -> None:
         self.id = mitigation_id
         self.description = self.clean_description(description)  # リンク系統を清掃する
         self.technique_list = tec_lis
+        self.snake_case_name = snake_case_name
 
     def show(self) -> None:
         tmp_lis = [tec.id for tec in self.technique_list]
@@ -71,20 +85,47 @@ class AtlasMitigation:  # 1つの緩和策を表すクラス
         return result
 
 
+class AtlasCaseStudy:  # 1つのケーススタディを表すクラス
+    def __init__(  # noqa: PLR0913 引数総数警告
+        self,
+        casestudy_id: str,
+        name: str,
+        description: str,
+        tec_list: list[AtlasTechnique],
+        target: str,
+        acttor: str,
+        casestudy_type: Literal["exercise", "incident"],
+        *,
+        reference_title: str | None = None,
+        reference_url: str | None = None,
+    ) -> None:
+        self.id = casestudy_id
+        self.name = name
+        self.description = description
+        self.technique_list = tec_list
+        self.target = target
+        self.actor = acttor
+        self.type = casestudy_type
+        self.reference_title = reference_title
+        self.reference_url = reference_url
+
+
 class Atlas:  # Atlasの機能を保持したクラス
     def __init__(
         self,
         *,  # 以下をキーワード引数に
-        version: Literal["4.7.0", "4.8.0"] = "4.8.0",
+        version: Literal["4.8.0"] = "4.8.0",
         emb_model: Literal["text-embedding-3-small", "text-embedding-3-large"] = "text-embedding-3-large",
         initialize_vector: bool = False,
     ) -> None:
         self.version = f"v{version}"
-        self.data_dir_path = files("atlas.data").joinpath("versions").joinpath(f"{self.version}")  # パッケージ内のdataディレクトリ
+        self.data_dir_path = files("atlas.data").joinpath(f"versions/{self.version}")  # パッケージ内のdataディレクトリ
         self.user_data_dir_path = Path(user_data_dir("atlas")) / "vestions" / self.version  # ユーザ側dataディレクトリ
         self.user_data_dir_path.mkdir(parents=True, exist_ok=True)
-        self.technique_list = self.__create_tec_list()
-        self.mitigation_list = self.__create_mit_list()
+        self.__create_tactic_list()
+        self.__create_tec_list()
+        self.__create_mit_list()
+        self.__create_casestudy_list()
         self.chroma_client = chromadb.PersistentClient(str(self.user_data_dir_path.joinpath("chroma")))
 
         if initialize_vector:
@@ -93,7 +134,41 @@ class Atlas:  # Atlasの機能を保持したクラス
             self.mitigation_list = self.__create_mit_list()  # ベクトルを新しい物に置き換えて再実行
         self.chroma_collection = self.__get_chroma_collection(model=emb_model)
 
-    def __create_tec_list(self) -> list[AtlasTechnique]:  # テクニックのリストを作成する関数(Atlasクラスのinitで使用)
+    def __search_object_from_snake_case_name(self, snake_case_name: str) -> AtlasTactic | AtlasTechnique | AtlasMitigation:
+        for tactic in self.tactic_list:
+            if tactic.snake_case_name == snake_case_name:
+                print(f"探索完了: {snake_case_name}")
+                return tactic
+        for tec in self.technique_list:
+            if tec.snake_case_name == snake_case_name:
+                print(f"探索完了: {snake_case_name}")
+                return tec
+        for mit in self.mitigation_list:
+            if mit.snake_case_name == snake_case_name:
+                print(f"探索完了: {snake_case_name}")
+                return mit
+        err_msg = f"Object with snake_case_name '{snake_case_name}' not found."
+        raise ValueError(err_msg)
+
+    def __create_tactic_list(self) -> None:
+        self.tactic_list: list[AtlasTactic] = []  # 一度初期化
+        with open(self.data_dir_path.joinpath("yaml/tactics.yaml")) as f:
+            yaml_data = yaml.safe_load(f)
+        with open(self.data_dir_path.joinpath("yaml/tactics.yaml")) as f:
+            text_data = f.read()
+            anchor_list = re.findall(r"- &(.*)", text_data)
+        for tactic_dict, snake_case_name in zip(yaml_data, anchor_list, strict=False):
+            print("aa")
+            tactic = AtlasTactic(
+                tactic_id=tactic_dict["id"],
+                name=tactic_dict["name"],
+                snake_case_name=snake_case_name,
+                description=tactic_dict["description"],
+                tec_lis=[],  # あとで格納
+            )
+            self.tactic_list.append(tactic)
+
+    def __create_tec_list_from_csv(self) -> list[AtlasTechnique]:  # テクニックのリストを作成する関数(Atlasクラスのinitで使用)
         if os.path.isfile(
             self.data_dir_path.joinpath("technique_vector.avro"),
         ):  # embeddingしたファイルがあるかどうかでtecにvectorを加えるかを決定
@@ -124,7 +199,57 @@ class Atlas:  # Atlasの機能を保持したクラス
             ret_tec_list.append(tec)
         return ret_tec_list
 
-    def __create_mit_list(self) -> list[AtlasMitigation]:  # Atlas用のmitigationリスト作成関数
+    def __create_tec_list(self) -> None:  # テクニックのリストを初期化・作成する関数
+        if os.path.isfile(
+            self.data_dir_path.joinpath("technique_vector.avro"),
+        ):  # embeddingしたファイルがあるかどうかでtecにvectorを加えるかを決定
+            use_vector = True
+            vector_df = pl.read_avro(self.data_dir_path.joinpath("technique_vector.avro"))
+        else:
+            use_vector = False
+
+        with open(self.data_dir_path.joinpath("yaml/techniques.yaml")) as f:
+            yaml_data = yaml.safe_load(f)
+        with open(self.data_dir_path.joinpath("yaml/techniques.yaml")) as f:
+            text_data = f.read()
+            anchor_list = re.findall(r"- &(.*)", text_data)
+        self.technique_list: list[AtlasTechnique] = []  # 戻り値用のテクニックリスト
+
+        for tec_dict, snake_case_name in zip(yaml_data, anchor_list, strict=False):
+            if "subtechnique-of" in tec_dict:  # 子テクニックの場合
+                parent_snake_case_name = re.findall(r"{{(.*)\.id}}", tec_dict["subtechnique-of"])[0]
+                parent = self.__search_object_from_snake_case_name(snake_case_name=parent_snake_case_name)
+                tec = AtlasTechnique(
+                    name=tec_dict["name"],
+                    technique_id=tec_dict["id"],
+                    description=tec_dict["description"],
+                    snake_case_name=snake_case_name,
+                    have_parent=True,
+                    parent_id=parent.id,
+                    vector=vector_df.filter(pl.col("ID") == tec_dict["id"])[0, "vector"].to_list() if use_vector else None,  # ベクトルを取得
+                    tactics=parent.tactics,
+                )
+                for tactic in parent.tactics:
+                    tactic.technique_list.append(tec)  # tacticのテクニックリストに追加
+            else:  # 親テクニックの場合
+                tactics = [  # 各tacticを検索
+                    self.__search_object_from_snake_case_name(snake_case_name=re.findall(r"{{(.*)\.id}}", tac)[0]) for tac in tec_dict["tactics"]
+                ]
+                tec = AtlasTechnique(
+                    name=tec_dict["name"],
+                    technique_id=tec_dict["id"],
+                    description=tec_dict["description"],
+                    snake_case_name=snake_case_name,
+                    have_parent=False,
+                    parent_id=None,
+                    vector=vector_df.filter(pl.col("ID") == tec_dict["id"])[0, "vector"].to_list() if use_vector else None,  # ベクトルを取得
+                    tactics=tactics,
+                )
+                for tactic in tactics:
+                    tactic.technique_list.append(tec)  # tacticのテクニックリストに追加
+            self.technique_list.append(tec)
+
+    def __create_mit_list_from_csv(self) -> list[AtlasMitigation]:  # Atlas用のmitigationリスト作成関数
         mit_df = pl.read_csv(self.data_dir_path.joinpath("atlas-mitigations.csv"))
         mit_tec_df = pl.read_csv(self.data_dir_path.joinpath("atlas-mitigations-addressed-techniques.csv"))
         ret_mit_list: list[AtlasMitigation] = []
@@ -141,6 +266,54 @@ class Atlas:  # Atlasの機能を保持したクラス
             ret_mit_list.append(mit)
         return ret_mit_list
 
+    def __create_mit_list(self) -> None:  # Atlas用のmitigationリスト作成関数
+        with open(self.data_dir_path.joinpath("yaml/mitigations.yaml")) as f:
+            yaml_data = yaml.safe_load(f)
+        with open(self.data_dir_path.joinpath("yaml/techniques.yaml")) as f:
+            text_data = f.read()
+            anchor_list = re.findall(r"- &(.*)", text_data)
+        self.mitigation_list: list[AtlasMitigation] = []
+        for mit_dict, snake_case_name in zip(yaml_data, anchor_list, strict=False):
+            tec_lis = [
+                self.__search_object_from_snake_case_name(snake_case_name=re.findall(r"{{(.*)\.id}}", tec["id"])[0]) for tec in mit_dict["techniques"]
+            ]
+            mit = AtlasMitigation(
+                mitigation_id=mit_dict["id"],
+                description=mit_dict["description"],
+                snake_case_name=snake_case_name,
+                tec_lis=tec_lis,
+            )
+            self.mitigation_list.append(mit)
+
+    def __create_casestudy_list(self) -> None:  # ケーススタディーの初期化+作成関数
+        yaml_file_name_list = os.listdir(self.data_dir_path.joinpath("yaml/case-studies"))
+        if ".DS_Store" in yaml_file_name_list:
+            yaml_file_name_list.remove(".DS_Store")
+        self.casestudy_list: list[AtlasCaseStudy] = []
+        for yaml_file_name in yaml_file_name_list:
+            with open(self.data_dir_path.joinpath(f"yaml/case-studies/{yaml_file_name}")) as f:
+                yaml_data = yaml.safe_load(f)
+            tec_lis = []
+            for step in yaml_data["procedure"]:
+                if re.search(r"AML\.T\d{4}", step["technique"]):  # AML.T0000の形式で記述されている場合
+                    tec_id = re.findall(r"(AML\..*)", step["technique"])[0]
+                    tec_lis.append(self.search_tec_from_id(tec_id=tec_id))
+                else:  # 通常のsnake_case + .id で記述されている場合
+                    tec_snake_case_name = re.findall(r"{{(.*)\.id}}", step["technique"])[0]
+                    tec_lis.append(self.__search_object_from_snake_case_name(snake_case_name=tec_snake_case_name))
+            casestudy = AtlasCaseStudy(
+                casestudy_id=yaml_data["id"],
+                name=yaml_data["name"],
+                description=yaml_data["summary"],
+                tec_list=tec_lis,
+                target=yaml_data["target"],
+                acttor=yaml_data["actor"],
+                casestudy_type=yaml_data["case-study-type"],
+                reference_title=yaml_data["references"][0]["title"] if "references" in yaml_data else None,
+                reference_url=yaml_data["references"][0]["url"] if "references" in yaml_data else None,
+            )
+            self.casestudy_list.append(casestudy)
+
     def __initialize_vector(self, model: Literal["text-embedding-3-small", "text-embedding-3-large"]) -> None:
         # ベクトルdb(chroma)とavroファイルの両方を初期化する関数
         # ベクトルavroファイルの初期化
@@ -155,11 +328,9 @@ class Atlas:  # Atlasの機能を保持したクラス
         vector_df = pl.DataFrame({"ID": id_list, "vector": vector_list})
         vector_df.write_avro(self.data_dir_path.joinpath("technique_vector.avro"))  # vector-DBを作成
         # ベクトルDB(chroma)の初期化
-        try:
+
+        with suppress(NotFoundError):
             self.chroma_client.delete_collection(name="atlas_technique")  # 存在する場合は一度削除してリセット
-            print("コレクションを削除しました。")
-        except NotFoundError:
-            print("コレクションは存在しません。")
         openai_ef = embedding_functions.OpenAIEmbeddingFunction(  # ベクトル化関数
             api_key=os.environ["OPENAI_API_KEY"],
             model_name=model,
@@ -269,16 +440,29 @@ class Atlas:  # Atlasの機能を保持したクラス
 
 def main() -> None:  # テスト用関数
     load_dotenv(override=True)
-    atlas = Atlas(version="4.8.0", emb_model="text-embedding-3-large", initialize_vector=True)
+    atlas = Atlas(version="4.8.0", emb_model="text-embedding-3-large", initialize_vector=False)
     print("テクニック数:", len(atlas.technique_list))
     print("緩和策数:", len(atlas.mitigation_list))
+    print("ケーススタディ数:", len(atlas.casestudy_list))
+    print("タクティック数:", len(atlas.tactic_list))
+
     print("テクニックのID:", atlas.technique_list[0].id)
     print("テクニックの名前:", atlas.technique_list[0].name)
     print("テクニックの説明:", atlas.technique_list[0].description)
+    print("テクニックのタクティック", [tactic.name for tactic in atlas.technique_list[0].tactics])
+
+    print("緩和策のID:", atlas.mitigation_list[0].id)
+    print("緩和策の説明:", atlas.mitigation_list[0].description)
+    print("緩和策のテクニック", [tec.id for tec in atlas.mitigation_list[0].technique_list])
+
+    print("ケーススタディーのID", atlas.casestudy_list[0].id)
+    print("ケーススタディーの名前", atlas.casestudy_list[0].name)
+    print("ケーススタディーの説明", atlas.casestudy_list[0].description)
+    print("ケーススタディーのステップ", [tec.id for tec in atlas.casestudy_list[0].technique_list])
+
     test_query = "Please search techniques about LLM and RAG"
-    seaerched_tec_lis = atlas.search_relevant_technique(query=test_query, top_k=5, filter_parent="both")
-    print("検索結果", [tec.id for tec in seaerched_tec_lis])
-    print("一覧", [tec.id for tec in atlas.technique_list])
+    searched_tec_lis = atlas.search_relevant_technique(query=test_query, top_k=5, filter_parent="both")
+    print("検索結果", [tec.id for tec in searched_tec_lis])
 
 
 if __name__ == "__main__":
