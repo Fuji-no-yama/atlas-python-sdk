@@ -117,13 +117,13 @@ class Atlas:  # Atlasの機能を保持したクラス
         self.version = f"v{version}"
         self.data_dir_path = files("atlas.data").joinpath(f"versions/{self.version}")  # パッケージ内のdataディレクトリ
         self.user_data_dir_path = Path(user_data_dir("atlas")) / "versions" / self.version  # ユーザ側dataディレクトリ
+        self.user_data_dir_path.mkdir(parents=True, exist_ok=True)  # 念の為作成
         self.__create_tactic_list()
         self.__create_tec_list()
         self.__create_mit_list()
         self.__create_casestudy_list()
-        if not os.path.isdir(self.user_data_dir_path):  # ユーザ側のディレクトリが存在しない場合
+        if not os.path.isdir(self.user_data_dir_path.joinpath("chroma")):  # ユーザ側のディレクトリが存在しない場合
             print("User data directory does not exist. Creating it...")
-            self.user_data_dir_path.mkdir(parents=True, exist_ok=True)  # 作成
             initialize_vector = True  # 初期実行時なので初期化を行う
         self.chroma_client = chromadb.PersistentClient(str(self.user_data_dir_path.joinpath("chroma")))
         if initialize_vector or not os.path.isdir(self.user_data_dir_path.joinpath("chroma")):
