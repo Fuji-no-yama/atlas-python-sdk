@@ -122,7 +122,8 @@ class Atlas:  # Atlasの機能を保持したクラス
         self.__create_tec_list()
         self.__create_mit_list()
         self.__create_casestudy_list()
-        if not os.path.isdir(self.user_data_dir_path.joinpath("chroma")):  # ユーザ側のディレクトリが存在しない場合
+        print(str(self.user_data_dir_path.joinpath("chroma")))
+        if not os.path.isdir(str(self.user_data_dir_path.joinpath("chroma"))):  # ユーザ側のディレクトリが存在しない場合
             print("User data directory does not exist. Creating it...")
             initialize_vector = True  # 初期実行時なので初期化を行う
         self.chroma_client = chromadb.PersistentClient(str(self.user_data_dir_path.joinpath("chroma")))
