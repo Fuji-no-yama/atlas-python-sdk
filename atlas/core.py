@@ -122,12 +122,12 @@ class Atlas:  # Atlasの機能を保持したクラス
         self.__create_tec_list()
         self.__create_mit_list()
         self.__create_casestudy_list()
+        self.chroma_client = chromadb.PersistentClient(str(self.user_data_dir_path.joinpath("chroma")))
         if initialize_vector or not os.path.isdir(self.user_data_dir_path.joinpath("chroma")):
             # 初期化が選択されている or 指定バージョンのvector DBが存在しない場合
             self.__initialize_vector(model=emb_model)
             self.__create_tec_list()  # ベクトルを新しい物に置き換えて再実行
             self.__create_mit_list()  # ベクトルを新しい物に置き換えて再実行
-        self.chroma_client = chromadb.PersistentClient(str(self.user_data_dir_path.joinpath("chroma")))
         self.chroma_collection = self.__get_chroma_collection(model=emb_model)
 
     def __search_object_from_snake_case_name(self, snake_case_name: str) -> AtlasTactic | AtlasTechnique | AtlasMitigation:
