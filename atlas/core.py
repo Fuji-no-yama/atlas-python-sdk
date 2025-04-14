@@ -70,10 +70,6 @@ class AtlasMitigation:  # 1つの緩和策を表すクラス
         self.technique_list = tec_lis
         self.snake_case_name = snake_case_name
 
-    def show(self) -> None:
-        tmp_lis = [tec.id for tec in self.technique_list]
-        print(tmp_lis)
-
     def check_technique_by_id(self, technique_id: str) -> bool:  # ある緩和策内にテクニックが含まれるかを確かめる関数
         return any(tec.id == technique_id for tec in self.technique_list)
 
@@ -120,7 +116,7 @@ class Atlas:  # Atlasの機能を保持したクラス
     ) -> None:
         self.version = f"v{version}"
         self.data_dir_path = files("atlas.data").joinpath(f"versions/{self.version}")  # パッケージ内のdataディレクトリ
-        self.user_data_dir_path = Path(user_data_dir("atlas")) / "vestions" / self.version  # ユーザ側dataディレクトリ
+        self.user_data_dir_path = Path(user_data_dir("atlas")) / "versions" / self.version  # ユーザ側dataディレクトリ
         self.user_data_dir_path.mkdir(parents=True, exist_ok=True)
         self.__create_tactic_list()
         self.__create_tec_list()
@@ -128,24 +124,22 @@ class Atlas:  # Atlasの機能を保持したクラス
         self.__create_casestudy_list()
         self.chroma_client = chromadb.PersistentClient(str(self.user_data_dir_path.joinpath("chroma")))
 
-        if initialize_vector:
+        if initialize_vector or not os.path.isdir(self.user_data_dir_path.joinpath("chroma")):
+            # 初期化が選択されている or 指定バージョンのvector DBが存在しない場合
             self.__initialize_vector(model=emb_model)
-            self.technique_list = self.__create_tec_list()  # ベクトルを新しい物に置き換えて再実行
-            self.mitigation_list = self.__create_mit_list()  # ベクトルを新しい物に置き換えて再実行
+            self.__create_tec_list()  # ベクトルを新しい物に置き換えて再実行
+            self.__create_mit_list()  # ベクトルを新しい物に置き換えて再実行
         self.chroma_collection = self.__get_chroma_collection(model=emb_model)
 
     def __search_object_from_snake_case_name(self, snake_case_name: str) -> AtlasTactic | AtlasTechnique | AtlasMitigation:
         for tactic in self.tactic_list:
             if tactic.snake_case_name == snake_case_name:
-                print(f"探索完了: {snake_case_name}")
                 return tactic
         for tec in self.technique_list:
             if tec.snake_case_name == snake_case_name:
-                print(f"探索完了: {snake_case_name}")
                 return tec
         for mit in self.mitigation_list:
             if mit.snake_case_name == snake_case_name:
-                print(f"探索完了: {snake_case_name}")
                 return mit
         err_msg = f"Object with snake_case_name '{snake_case_name}' not found."
         raise ValueError(err_msg)
@@ -158,7 +152,6 @@ class Atlas:  # Atlasの機能を保持したクラス
             text_data = f.read()
             anchor_list = re.findall(r"- &(.*)", text_data)
         for tactic_dict, snake_case_name in zip(yaml_data, anchor_list, strict=False):
-            print("aa")
             tactic = AtlasTactic(
                 tactic_id=tactic_dict["id"],
                 name=tactic_dict["name"],
@@ -440,7 +433,7 @@ class Atlas:  # Atlasの機能を保持したクラス
 
 def main() -> None:  # テスト用関数
     load_dotenv(override=True)
-    atlas = Atlas(version="4.8.0", emb_model="text-embedding-3-large", initialize_vector=False)
+    atlas = Atlas(version="4.8.0", emb_model="text-embedding-3-large", initialize_vector=True)
     print("テクニック数:", len(atlas.technique_list))
     print("緩和策数:", len(atlas.mitigation_list))
     print("ケーススタディ数:", len(atlas.casestudy_list))
