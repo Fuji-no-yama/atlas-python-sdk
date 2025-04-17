@@ -122,9 +122,9 @@ class Atlas:  # Atlasの機能を保持したクラス
         self.__create_tec_list()
         self.__create_mit_list()
         self.__create_casestudy_list()
-        print(str(self.user_data_dir_path.joinpath("chroma")))
+        self.__clean_description()  # 全ての記述内部に埋め込まれているリンクを削除
         if not os.path.isdir(str(self.user_data_dir_path.joinpath("chroma"))):  # ユーザ側のディレクトリが存在しない場合
-            print("User data directory does not exist. Creating it...")
+            print("ベクトルDBの設定がありません。初期化し作成します...")
             initialize_vector = True  # 初期実行時なので初期化を行う
         self.chroma_client = chromadb.PersistentClient(str(self.user_data_dir_path.joinpath("chroma")))
         if initialize_vector or not os.path.isdir(self.user_data_dir_path.joinpath("chroma")):
@@ -132,7 +132,26 @@ class Atlas:  # Atlasの機能を保持したクラス
             self.__initialize_vector(model=emb_model)
             self.__create_tec_list()  # ベクトルを新しい物に置き換えて再実行
             self.__create_mit_list()  # ベクトルを新しい物に置き換えて再実行
+            self.__clean_description()  # 全ての記述内部に埋め込まれているリンクを削除(作り直してしまうためもう一度)
         self.chroma_collection = self.__get_chroma_collection(model=emb_model)
+
+    def __clean_description(self) -> None:
+        for tac in self.tactic_list:
+            tac.description = self.__clean_one_description(tac.description)
+        for tec in self.technique_list:
+            tec.description = self.__clean_one_description(tec.description)
+        for mit in self.mitigation_list:
+            mit.description = self.__clean_one_description(mit.description)
+        for cs in self.casestudy_list:
+            cs.description = self.__clean_one_description(cs.description)
+
+    def __clean_one_description(self, desc: str) -> str:  # 1つの記述についてリンク等を削除する関数
+        def replace_snake_case_with_name(match: re.Match) -> str:
+            snake_case_name = match.group(1)
+            obj = self.__search_object_from_snake_case_name(snake_case_name)
+            return f"{obj.name}({obj.id})"
+
+        return re.sub(r"{{ create_internal_link\((.*?)\) }}", replace_snake_case_with_name, desc)
 
     def __search_object_from_snake_case_name(self, snake_case_name: str) -> AtlasTactic | AtlasTechnique | AtlasMitigation:
         for tactic in self.tactic_list:
@@ -365,7 +384,7 @@ class Atlas:  # Atlasの機能を保持したクラス
         query: str,
         top_k: int,
         *,
-        filter_parent: Literal["parent", "child", "both"] = "both",
+        filter: Literal["parent", "child", "both"] = "both",  # noqa: A002
     ) -> list[AtlasTechnique]:
         """
         クエリを元にベクトルDBを検索する関数
@@ -378,11 +397,11 @@ class Atlas:  # Atlasの機能を保持したクラス
         Returns:
             list[Atlas_Technique]: top_kで指定された個数分上位の結果をテクニックオブジェクト
         """
-        if filter_parent == "parent":
+        if filter == "parent":
             result = self.chroma_collection.query(query_texts=[query], n_results=top_k, where={"is_parent": True})
-        elif filter_parent == "child":
+        elif filter == "child":
             result = self.chroma_collection.query(query_texts=[query], n_results=top_k, where={"is_parent": False})
-        elif filter_parent == "both":
+        elif filter == "both":
             result = self.chroma_collection.query(query_texts=[query], n_results=top_k)
         ret: list[AtlasTechnique] = [self.search_tec_from_id(tec_id=tec_id) for tec_id in result["ids"][0]]
         return ret
@@ -458,6 +477,10 @@ def main() -> None:  # テスト用関数
     test_query = "Please search techniques about LLM and RAG"
     searched_tec_lis = atlas.search_relevant_technique(query=test_query, top_k=5, filter_parent="both")
     print("検索結果", [tec.id for tec in searched_tec_lis])
+
+    for tec in atlas.technique_list:
+        print("=================")
+        print(tec.description)
 
 
 if __name__ == "__main__":
