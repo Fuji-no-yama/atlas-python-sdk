@@ -94,11 +94,14 @@ for cs in atlas.casestudy_list:
 <summary>テクニック検索</summary>
 
 2種類の検索関数を使用することができます。
+### テクニックid検索
+idを元にテクニックを検索することができます。
 ```python
 tec = atlas.search_tec_from_id(id="AML.T0000")
+print("検索結果", tec.id)
 ```
 
-### テクニックid検索
+### クエリからのテクニックベクトル検索
 記述に類似する内容からベクトル検索を行うことができます。
 - query引数: 自由記述のクエリを入力できます。
 - top_k引数: 上位何件を取得するかを選択できます。
