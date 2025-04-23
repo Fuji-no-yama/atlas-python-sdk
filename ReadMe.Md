@@ -21,10 +21,9 @@ atlas = Atlas(version="4.9.0", emb_model="text-embedding-3-small", initialize_ve
 ```
 ## 機能一覧
 
-<details>
-<summary>ATLAS テクニック</summary>
+### ATLAS テクニック オブジェクト
 
-### 保有情報
+#### 保有情報
 - name(str) : テクニック名
 - id(str) : id名 (例 AML.T0000)
 - description(str) : 記述内容(リンクなどを削除し整形済み)
@@ -34,7 +33,7 @@ atlas = Atlas(version="4.9.0", emb_model="text-embedding-3-small", initialize_ve
 - tactics(list[AtlasTactic]) : 所属するtacticオブジェクトのリスト
 - snake_case_name(str) : yamlファイルに記載されている名前
 
-### 使用例
+#### 使用例
 atlasテクニックオブジェクトを順番に確認しidがAML.T0000のものを取得したい場合
 ```python
 for tec in atlas.technique_list:
@@ -42,19 +41,16 @@ for tec in atlas.technique_list:
         print("found!!")
 ```
 
-</details>
+### ATLAS 緩和策 オブジェクト
 
-<details>
-<summary>ATLAS 緩和策</summary>
-
-### 保有情報
+#### 保有情報
 - name(str) : 緩和策名
 - id(str) : id名 (例 AML.M0000)
 - description(str) : 記述内容(リンクなどを削除し整形済み)
 - technique_list(list[AtlasTechnique]) : 緩和策が紐づいているテクニックのリスト
 - snake_case_name(str) : yamlファイルに記載されている名前
 
-### 使用例
+#### 使用例
 atlas緩和策オブジェクトを順番に確認しidがAML.M0000について紐づいているテクニックのid一覧を表示したい場合
 ```python
 for mit in atlas.mitigation_list:
@@ -63,12 +59,9 @@ for mit in atlas.mitigation_list:
         print(tec.id)
 ```
 
-</details>
+### ATLAS ケーススタディー オブジェクト
 
-<details>
-<summary>ATLAS ケーススタディー</summary>
-
-### 保有情報
+#### 保有情報
 - name(str) : 緩和策名
 - id(str) : id名 (例 AML.CS0000)
 - summary(str) : 記述概要(リンクなどを削除し整形済み)
@@ -83,7 +76,7 @@ AtlasCaseStudyStepの保有情報
 - reference_title(str) : 参考のタイトル (記載がない場合はNone)
 - reference_url(str) : 参考のURL (記載がない場合はNone)
 
-### 使用例
+#### 使用例
 atlasケーススタディオブジェクトを順番に確認しidがAML.CS0000のsummaryを確認したい場合
 ```python
 for cs in atlas.casestudy_list:
@@ -101,20 +94,17 @@ for cs in atlas.casestudy_list:
             print("description:", step.description)
 ```
 
-</details>
-
-<details>
-<summary>テクニック検索</summary>
+### テクニック検索
 
 2種類の検索関数を使用することができます。
-### テクニックid検索
+#### テクニックid検索
 idを元にテクニックを検索することができます。(idが存在しない場合はValueErrorをraiseします)
 ```python
 tec = atlas.search_tec_from_id(id="AML.T0000")
 print("検索結果", tec.id)
 ```
 
-### クエリからのテクニックベクトル検索
+#### クエリからのテクニックベクトル検索
 記述に類似する内容からベクトル検索を行うことができます。
 - query引数: 自由記述のクエリを入力できます。
 - top_k引数: 上位何件を取得するかを選択できます。
@@ -125,35 +115,22 @@ searched_tec_lis = atlas.search_relevant_technique(query=test_query, top_k=5, fi
 print("検索結果", [tec.id for tec in searched_tec_lis])
 ```
 
-</details>
-
-<details>
-<summary>緩和策検索</summary>
+### 緩和策検索
 
 1種類の検索関数を使用することができます。
-### 緩和策id検索
+#### 緩和策id検索
 idを元に緩和策を検索することができます。(idが存在しない場合はValueErrorをraiseします)
 ```python
 mit = atlas.search_mit_from_id(id="AML.M0000")
 print("検索結果", mit.id)
 ```
 
-</details>
-
-<details>
-<summary>ケーススタディー検索</summary>
+### ケーススタディー検索
 
 1種類の検索関数を使用することができます。
-### ケーススタディーid検索
+#### ケーススタディーid検索
 idを元にケーススタディーを検索することができます。(idが存在しない場合はValueErrorをraiseします)
 ```python
 cs = atlas.search_cs_from_id(id="AML.CS0026")
 print("検索結果", cs.id)
 ```
-
-</details>
-
-<!-- # その他
-## ディレクトリ構造
-
-## お問い合わせ -->
