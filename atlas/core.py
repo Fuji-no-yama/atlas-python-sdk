@@ -81,13 +81,20 @@ class AtlasMitigation:  # 1つの緩和策を表すクラス
         return result
 
 
+class AtlasCaseStudyStep:
+    def __init__(self, tactic: AtlasTactic, technique: AtlasTechnique, description: str) -> None:
+        self.tactic = tactic
+        self.technique = technique
+        self.description = description
+
+
 class AtlasCaseStudy:  # 1つのケーススタディを表すクラス
     def __init__(  # noqa: PLR0913 引数総数警告
         self,
         casestudy_id: str,
         name: str,
-        description: str,
-        tec_list: list[AtlasTechnique],
+        summary: str,
+        step_list: list[AtlasCaseStudyStep],
         target: str,
         acttor: str,
         casestudy_type: Literal["exercise", "incident"],
@@ -97,8 +104,8 @@ class AtlasCaseStudy:  # 1つのケーススタディを表すクラス
     ) -> None:
         self.id = casestudy_id
         self.name = name
-        self.description = description
-        self.technique_list = tec_list
+        self.summary = summary
+        self.procedure = step_list
         self.target = target
         self.actor = acttor
         self.type = casestudy_type
@@ -143,7 +150,7 @@ class Atlas:  # Atlasの機能を保持したクラス
         for mit in self.mitigation_list:
             mit.description = self.__clean_one_description(mit.description)
         for cs in self.casestudy_list:
-            cs.description = self.__clean_one_description(cs.description)
+            cs.summary = self.__clean_one_description(cs.summary)
 
     def __clean_one_description(self, desc: str) -> str:  # 1つの記述についてリンク等を削除する関数
         def replace_snake_case_with_name(match: re.Match) -> str:
@@ -182,37 +189,6 @@ class Atlas:  # Atlasの機能を保持したクラス
                 tec_lis=[],  # あとで格納
             )
             self.tactic_list.append(tactic)
-
-    def __create_tec_list_from_csv(self) -> list[AtlasTechnique]:  # テクニックのリストを作成する関数(Atlasクラスのinitで使用)
-        if os.path.isfile(
-            self.data_dir_path.joinpath("technique_vector.avro"),
-        ):  # embeddingしたファイルがあるかどうかでtecにvectorを加えるかを決定
-            use_vector = True
-            vector_df = pl.read_avro(self.data_dir_path.joinpath("technique_vector.avro"))
-        else:
-            use_vector = False
-        technique_df = pl.read_csv(self.data_dir_path.joinpath("atlas-techniques.csv"))
-        ret_tec_list: list[AtlasTechnique] = []  # 戻り値用のテクニックリスト
-        for row in technique_df.iter_rows(named=True):
-            parent_id_list = re.findall(r"(AML\.T\d{4})\.", row["ID"])  # (AML.T~~).~~のカッコの部分を取得
-            if len(parent_id_list) != 0:  # 親がいる場合(子の場合)
-                have_parent = True
-                parent_id = parent_id_list[0]
-            else:  # 親がいない場合(親の場合)
-                have_parent = False
-                parent_id = None
-            vector = vector_df.filter(pl.col("ID") == row["ID"])[0, "vector"].to_list() if use_vector else None  # ベクトルを取得
-            tec = AtlasTechnique(
-                name=row["name"],
-                technique_id=row["ID"],
-                description=row["description"],
-                have_parent=have_parent,
-                parent_id=parent_id,
-                vector=vector,
-                tactics=row["tactics"].split(", "),
-            )
-            ret_tec_list.append(tec)
-        return ret_tec_list
 
     def __create_tec_list(self) -> None:  # テクニックのリストを初期化・作成する関数
         if os.path.isfile(
@@ -264,23 +240,6 @@ class Atlas:  # Atlasの機能を保持したクラス
                     tactic.technique_list.append(tec)  # tacticのテクニックリストに追加
             self.technique_list.append(tec)
 
-    def __create_mit_list_from_csv(self) -> list[AtlasMitigation]:  # Atlas用のmitigationリスト作成関数
-        mit_df = pl.read_csv(self.data_dir_path.joinpath("atlas-mitigations.csv"))
-        mit_tec_df = pl.read_csv(self.data_dir_path.joinpath("atlas-mitigations-addressed-techniques.csv"))
-        ret_mit_list: list[AtlasMitigation] = []
-        for row in mit_df.iter_rows(named=True):
-            tec_list: list[AtlasTechnique] = [  # dfに登録されているテクニック名から検索しリストに登録
-                self.search_tec_from_id(tec_id=target_tec_id)
-                for target_tec_id in mit_tec_df.filter(pl.col("source ID") == row["ID"])["target ID"].to_list()
-            ]
-            mit = AtlasMitigation(
-                mitigation_id=row["ID"],
-                description=row["description"],
-                tec_lis=tec_list,
-            )
-            ret_mit_list.append(mit)
-        return ret_mit_list
-
     def __create_mit_list(self) -> None:  # Atlas用のmitigationリスト作成関数
         with open(self.data_dir_path.joinpath("yaml/mitigations.yaml")) as f:
             yaml_data = yaml.safe_load(f)
@@ -308,19 +267,27 @@ class Atlas:  # Atlasの機能を保持したクラス
         for yaml_file_name in yaml_file_name_list:
             with open(self.data_dir_path.joinpath(f"yaml/case-studies/{yaml_file_name}")) as f:
                 yaml_data = yaml.safe_load(f)
-            tec_lis = []
+            step_lis: list[AtlasCaseStudyStep] = []
             for step in yaml_data["procedure"]:
+                if re.search(r"AML\.TA\d{4}", step["tactic"]):  # AML.TA0000の形式で記述されている場合
+                    tac_id = re.findall(r"(AML\..*)", step["tactic"])[0]
+                    tac = self.search_tec_from_id(tec_id=tac_id)
+                else:  # 通常のsnake_case + .id で記述されている場合
+                    tac_snake_case_name = re.findall(r"{{(.*)\.id}}", step["tactic"])[0]
+                    tac = self.__search_object_from_snake_case_name(snake_case_name=tac_snake_case_name)
                 if re.search(r"AML\.T\d{4}", step["technique"]):  # AML.T0000の形式で記述されている場合
                     tec_id = re.findall(r"(AML\..*)", step["technique"])[0]
-                    tec_lis.append(self.search_tec_from_id(tec_id=tec_id))
+                    tec = self.search_tec_from_id(tec_id=tec_id)
                 else:  # 通常のsnake_case + .id で記述されている場合
                     tec_snake_case_name = re.findall(r"{{(.*)\.id}}", step["technique"])[0]
-                    tec_lis.append(self.__search_object_from_snake_case_name(snake_case_name=tec_snake_case_name))
+                    tec = self.__search_object_from_snake_case_name(snake_case_name=tec_snake_case_name)
+                step_lis.append(AtlasCaseStudyStep(tactic=tac, technique=tec, description=step["description"]))
+
             casestudy = AtlasCaseStudy(
                 casestudy_id=yaml_data["id"],
                 name=yaml_data["name"],
-                description=yaml_data["summary"],
-                tec_list=tec_lis,
+                summary=yaml_data["summary"],
+                step_list=step_lis,
                 target=yaml_data["target"],
                 acttor=yaml_data["actor"],
                 casestudy_type=yaml_data["case-study-type"],
@@ -372,12 +339,45 @@ class Atlas:  # Atlasの機能を保持したクラス
             tec_id (str): テクニックのID 例:AML.T0042
 
         Returns:
-            Atlas_Technique: 検索されたテクニックオブジェクト
+            AtlasTechnique: 検索されたテクニックオブジェクト
         """
         for tec in self.technique_list:
             if tec.id == tec_id:
                 return tec
-        return
+        err_msg = f"'{tec_id}'が検索の結果見つかりませんでした。"
+        raise ValueError(err_msg)  # IDが見つからなかった場合はエラーを返す
+
+    def search_mit_from_id(self, mit_id: str) -> AtlasMitigation:  # IDからテクニックを検索する関数
+        """
+        IDから緩和策を検索する関数
+
+        Args:
+            mit_id (str): テクニックのID 例:AML.M0000
+
+        Returns:
+            AtlasMitigation: 検索された緩和策オブジェクト
+        """
+        for mit in self.mitigation_list:
+            if mit.id == mit_id:
+                return mit
+        err_msg = f"'{mit_id}'が検索の結果見つかりませんでした。"
+        raise ValueError(err_msg)  # IDが見つからなかった場合はエラーを返す
+
+    def search_cs_from_id(self, cs_id: str) -> AtlasCaseStudy:  # IDからテクニックを検索する関数
+        """
+        IDからケーススタディーを検索する関数
+
+        Args:
+            cs_id (str): ケーススタディーのID 例:AML.CS0026
+
+        Returns:
+            AtlasCaseStudy: 検索されたケーススタディーオブジェクト
+        """
+        for cs in self.casestudy_list:
+            if cs.id == cs_id:
+                return cs
+        err_msg = f"'{cs_id}'が検索の結果見つかりませんでした。"
+        raise ValueError(err_msg)  # IDが見つからなかった場合はエラーを返す
 
     def search_relevant_technique(
         self,

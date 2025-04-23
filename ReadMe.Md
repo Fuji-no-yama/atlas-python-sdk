@@ -71,8 +71,12 @@ for mit in atlas.mitigation_list:
 ### 保有情報
 - name(str) : 緩和策名
 - id(str) : id名 (例 AML.CS0000)
-- description(str) : 記述内容(リンクなどを削除し整形済み)
-- technique_list(list[AtlasTechnique]) : ケーススタディのステップを構成するテクニックのリスト(順番もこのまま)
+- summary(str) : 記述概要(リンクなどを削除し整形済み)
+- procedure(list[AtlasCaseStudyStep]) : ケーススタディのステップを表すオブジェクトのリスト(順番もこのまま)  
+AtlasCaseStudyStepの保有情報
+    - technique(AtlasTechnique) : テクニックオブジェクト
+    - tactic(AtlasTactic) : タクティックオブジェクト
+    - description(str) : テクニックのdescriptionとは異なりケーススタディー固有のdescription
 - target (str): ケーススタディページに記載されているターゲット情報
 - actor (str): ケーススタディページに記載されているアクター情報
 - type (str): "exercise" または "incident"
@@ -80,12 +84,21 @@ for mit in atlas.mitigation_list:
 - reference_url(str) : 参考のURL (記載がない場合はNone)
 
 ### 使用例
-atlasケーススタディオブジェクトを順番に確認しidがAML.CS0000について紐づいているテクニックのid一覧を順番に表示したい場合
+atlasケーススタディオブジェクトを順番に確認しidがAML.CS0000のsummaryを確認したい場合
 ```python
 for cs in atlas.casestudy_list:
     if cs.id == "AML.CS0000":
-        for tec in cs.technique_list:
-        print(tec.id)
+        print(cs.summary)
+```
+
+atlasケーススタディオブジェクトを順番に確認しidがAML.CS0000のprocedureについて、tacticのID、techniqueのID、ケースタディー固有の記述について順番に取得する場合
+```python
+for cs in atlas.casestudy_list:
+    if cs.id == "AML.CS0000":
+        for step in cs.procedure:
+            print("tactic ID:", step.tactic.id)
+            print("technique ID:", step.technique.id)
+            print("description:", step.description)
 ```
 
 </details>
@@ -95,7 +108,7 @@ for cs in atlas.casestudy_list:
 
 2種類の検索関数を使用することができます。
 ### テクニックid検索
-idを元にテクニックを検索することができます。
+idを元にテクニックを検索することができます。(idが存在しない場合はValueErrorをraiseします)
 ```python
 tec = atlas.search_tec_from_id(id="AML.T0000")
 print("検索結果", tec.id)
@@ -110,6 +123,32 @@ print("検索結果", tec.id)
 test_query = "Please search techniques about LLM and RAG"
 searched_tec_lis = atlas.search_relevant_technique(query=test_query, top_k=5, filter_parent="both")
 print("検索結果", [tec.id for tec in searched_tec_lis])
+```
+
+</details>
+
+<details>
+<summary>緩和策検索</summary>
+
+1種類の検索関数を使用することができます。
+### 緩和策id検索
+idを元に緩和策を検索することができます。(idが存在しない場合はValueErrorをraiseします)
+```python
+mit = atlas.search_mit_from_id(id="AML.M0000")
+print("検索結果", mit.id)
+```
+
+</details>
+
+<details>
+<summary>ケーススタディー検索</summary>
+
+1種類の検索関数を使用することができます。
+### ケーススタディーid検索
+idを元にケーススタディーを検索することができます。(idが存在しない場合はValueErrorをraiseします)
+```python
+cs = atlas.search_cs_from_id(id="AML.CS0026")
+print("検索結果", cs.id)
 ```
 
 </details>
