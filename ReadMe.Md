@@ -73,8 +73,8 @@ AtlasCaseStudyStepの保有情報
 - target (str): ケーススタディページに記載されているターゲット情報
 - actor (str): ケーススタディページに記載されているアクター情報
 - type (str): "exercise" または "incident"
-- reference_title(str) : 参考のタイトル (記載がない場合はNone)
-- reference_url(str) : 参考のURL (記載がない場合はNone)
+- reference_title_list(list[str]) : 参考のタイトルリスト (記載がない場合はNone)
+- reference_url_list(list[str]) : 参考のURLリスト (記載がない場合はNone)
 
 #### 使用例
 atlasケーススタディオブジェクトを順番に確認しidがAML.CS0000のsummaryを確認したい場合
