@@ -99,8 +99,8 @@ class AtlasCaseStudy:  # 1つのケーススタディを表すクラス
         acttor: str,
         casestudy_type: Literal["exercise", "incident"],
         *,
-        reference_title: str | None = None,
-        reference_url: str | None = None,
+        reference_title_list: list[str] | None = None,
+        reference_url_list: list[str] | None = None,
     ) -> None:
         self.id = casestudy_id
         self.name = name
@@ -109,8 +109,8 @@ class AtlasCaseStudy:  # 1つのケーススタディを表すクラス
         self.target = target
         self.actor = acttor
         self.type = casestudy_type
-        self.reference_title = reference_title
-        self.reference_url = reference_url
+        self.reference_title_list = reference_title_list
+        self.reference_url_list = reference_url_list
 
 
 class Atlas:  # Atlasの機能を保持したクラス
@@ -291,8 +291,8 @@ class Atlas:  # Atlasの機能を保持したクラス
                 target=yaml_data["target"],
                 acttor=yaml_data["actor"],
                 casestudy_type=yaml_data["case-study-type"],
-                reference_title=yaml_data["references"][0]["title"] if "references" in yaml_data else None,
-                reference_url=yaml_data["references"][0]["url"] if "references" in yaml_data else None,
+                reference_title_list=[d["title"] for d in yaml_data["references"]] if "references" in yaml_data else None,
+                reference_url_list=[d["url"] for d in yaml_data["references"]] if "references" in yaml_data else None,
             )
             self.casestudy_list.append(casestudy)
 
