@@ -82,10 +82,12 @@ class AtlasMitigation:  # 1つの緩和策を表すクラス
 
 
 class AtlasCaseStudyStep:
-    def __init__(self, tactic: AtlasTactic, technique: AtlasTechnique, description: str) -> None:
+    def __init__(self, casestudy_step_id: str, tactic: AtlasTactic, technique: AtlasTechnique, description: str, parent_id: str) -> None:
+        self.id = casestudy_step_id  # 親ケーススタディーのID + ステップ番号(AML.CS0000.0の形式で記述)
         self.tactic = tactic
         self.technique = technique
         self.description = description
+        self.parent_id = parent_id  # ケーススタディーの親ID(AML.CS0000の形式で記述)
 
 
 class AtlasCaseStudy:  # 1つのケーススタディを表すクラス
@@ -140,7 +142,8 @@ class Atlas:  # Atlasの機能を保持したクラス
             self.__create_tec_list()  # ベクトルを新しい物に置き換えて再実行
             self.__create_mit_list()  # ベクトルを新しい物に置き換えて再実行
             self.__clean_description()  # 全ての記述内部に埋め込まれているリンクを削除(作り直してしまうためもう一度)
-        self.chroma_collection = self.__get_chroma_collection(model=emb_model)
+        self.technique_chroma_collection = self.__get_technique_chroma_collection(model=emb_model)
+        self.casestudy_chroma_collection = self.__get_casestudy_chroma_collection(model=emb_model)
 
     def __clean_description(self) -> None:
         for tac in self.tactic_list:
@@ -268,7 +271,7 @@ class Atlas:  # Atlasの機能を保持したクラス
             with open(self.data_dir_path.joinpath(f"yaml/case-studies/{yaml_file_name}")) as f:
                 yaml_data = yaml.safe_load(f)
             step_lis: list[AtlasCaseStudyStep] = []
-            for step in yaml_data["procedure"]:
+            for i, step in enumerate(yaml_data["procedure"]):
                 if re.search(r"AML\.TA\d{4}", step["tactic"]):  # AML.TA0000の形式で記述されている場合
                     tac_id = re.findall(r"(AML\..*)", step["tactic"])[0]
                     tac = self.search_tec_from_id(tec_id=tac_id)
@@ -281,7 +284,15 @@ class Atlas:  # Atlasの機能を保持したクラス
                 else:  # 通常のsnake_case + .id で記述されている場合
                     tec_snake_case_name = re.findall(r"{{(.*)\.id}}", step["technique"])[0]
                     tec = self.__search_object_from_snake_case_name(snake_case_name=tec_snake_case_name)
-                step_lis.append(AtlasCaseStudyStep(tactic=tac, technique=tec, description=step["description"]))
+                step_lis.append(
+                    AtlasCaseStudyStep(
+                        casestudy_step_id=f"{yaml_data['id']}.{i}",
+                        tactic=tac,
+                        technique=tec,
+                        description=step["description"],
+                        parent_id=yaml_data["id"],
+                    ),
+                )
 
             casestudy = AtlasCaseStudy(
                 casestudy_id=yaml_data["id"],
@@ -297,6 +308,11 @@ class Atlas:  # Atlasの機能を保持したクラス
             self.casestudy_list.append(casestudy)
 
     def __initialize_vector(self, model: Literal["text-embedding-3-small", "text-embedding-3-large"]) -> None:
+        self.__initialize_technique_vector(model=model)  # テクニックのベクトルDBを初期化
+        self.__initialize_casestudy_vector(model=model)
+        print("ベクトルDBの初期化が完了しました。")  # 初期化完了のメッセージ
+
+    def __initialize_technique_vector(self, model: Literal["text-embedding-3-small", "text-embedding-3-large"]) -> None:
         # ベクトルdb(chroma)とavroファイルの両方を初期化する関数
         # ベクトルavroファイルの初期化
         id_list = []
@@ -323,12 +339,56 @@ class Atlas:  # Atlasの機能を保持したクラス
         )
         collection.add(documents=desc_list, ids=id_list, metadatas=metadata_list)  # コレクションに追加
 
-    def __get_chroma_collection(self, model: Literal["text-embedding-3-small", "text-embedding-3-large"]) -> Collection:  # chromaDBを起動する関数
+    def __initialize_casestudy_vector(self, model: Literal["text-embedding-3-small", "text-embedding-3-large"]) -> None:
+        # ベクトルdb(chroma)とavroファイルの両方を初期化する関数
+        # ベクトルavroファイルの初期化
+        id_list = []
+        desc_list = []
+        metadata_list = []  # {"step_number":int}の形を保持した辞書
+
+        for cs in self.casestudy_list:
+            for i, step in enumerate(cs.procedure):
+                id_list.append(step.id)  # AML.CS0000.0の形式
+                desc_list.append(step.description)
+                metadata_list.append({"step_number": i})
+
+        vector_list = self.__create_embedding_multiple(s_list=desc_list, model=model)
+        vector_df = pl.DataFrame({"ID": id_list, "vector": vector_list})
+        vector_df.write_avro(self.data_dir_path.joinpath("casestudy_vector.avro"))  # vector-DBを作成
+        # ベクトルDB(chroma)の初期化
+        with suppress(NotFoundError):
+            self.chroma_client.delete_collection(name="atlas_casestudy")  # 存在する場合は一度削除してリセット
+        openai_ef = embedding_functions.OpenAIEmbeddingFunction(  # ベクトル化関数
+            api_key=os.environ["OPENAI_API_KEY"],
+            model_name=model,
+        )
+        collection = self.chroma_client.get_or_create_collection(
+            name="atlas_casestudy",
+            metadata={"hnsw:space": "cosine"},
+            embedding_function=openai_ef,
+        )
+        collection.add(documents=desc_list, ids=id_list, metadatas=metadata_list)  # コレクションに追加
+
+    def __get_technique_chroma_collection(
+        self,
+        model: Literal["text-embedding-3-small", "text-embedding-3-large"],
+    ) -> Collection:  # chromaDBを起動する関数
         openai_ef = embedding_functions.OpenAIEmbeddingFunction(
             api_key=os.environ["OPENAI_API_KEY"],
             model_name=model,
         )
         collection = self.chroma_client.get_collection(name="atlas_technique", embedding_function=openai_ef)
+        return collection
+
+    def __get_casestudy_chroma_collection(
+        self,
+        model: Literal["text-embedding-3-small", "text-embedding-3-large"],
+    ) -> Collection:  # chromaDBを起動する関数
+        openai_ef = embedding_functions.OpenAIEmbeddingFunction(
+            api_key=os.environ["OPENAI_API_KEY"],
+            model_name=model,
+        )
+        collection = self.chroma_client.get_collection(name="atlas_casestudy", embedding_function=openai_ef)
         return collection
 
     def search_tec_from_id(self, tec_id: str) -> AtlasTechnique:  # IDからテクニックを検索する関数
@@ -379,6 +439,23 @@ class Atlas:  # Atlasの機能を保持したクラス
         err_msg = f"'{cs_id}'が検索の結果見つかりませんでした。"
         raise ValueError(err_msg)  # IDが見つからなかった場合はエラーを返す
 
+    def search_cs_step_from_id(self, cs_step_id: str) -> AtlasCaseStudyStep:
+        """
+        ケーススタディーのIDとステップ番号からケーススタディーのステップを検索する関数
+
+        Args:
+            cs_step_id (str): ケーススタディーのID + ステップ番号 例:AML.CS0026.0
+
+        Returns:
+            AtlasCaseStudyStep: 検索されたケーススタディーのステップオブジェクト
+        """
+        for cs in self.casestudy_list:
+            for step in cs.procedure:
+                if step.id == cs_step_id:
+                    return step
+        err_msg = f"'{cs_step_id}'が検索の結果見つかりませんでした。"
+        raise ValueError(err_msg)
+
     def search_relevant_technique(
         self,
         query: str,
@@ -398,12 +475,31 @@ class Atlas:  # Atlasの機能を保持したクラス
             list[Atlas_Technique]: top_kで指定された個数分上位の結果をテクニックオブジェクト
         """
         if filter == "parent":
-            result = self.chroma_collection.query(query_texts=[query], n_results=top_k, where={"is_parent": True})
+            result = self.technique_chroma_collection.query(query_texts=[query], n_results=top_k, where={"is_parent": True})
         elif filter == "child":
-            result = self.chroma_collection.query(query_texts=[query], n_results=top_k, where={"is_parent": False})
+            result = self.technique_chroma_collection.query(query_texts=[query], n_results=top_k, where={"is_parent": False})
         elif filter == "both":
-            result = self.chroma_collection.query(query_texts=[query], n_results=top_k)
+            result = self.technique_chroma_collection.query(query_texts=[query], n_results=top_k)
         ret: list[AtlasTechnique] = [self.search_tec_from_id(tec_id=tec_id) for tec_id in result["ids"][0]]
+        return ret
+
+    def search_relevant_casestudy(
+        self,
+        query: str,
+        top_k: int,
+    ) -> list[AtlasCaseStudy]:
+        """
+        クエリを元にベクトルDBを検索する関数
+
+        Args:
+            query (str): 検索文言
+            top_k (int): 上位何件を取得するか
+
+        Returns:
+            list[AtlasCaseStudy]: top_kで指定された個数分上位の結果をケーススタディーオブジェクト
+        """
+        result = self.casestudy_chroma_collection.query(query_texts=[query], n_results=top_k)
+        ret: list[AtlasCaseStudyStep] = [self.search_cs_step_from_id(cs_step_id=cs_step_id) for cs_step_id in result["ids"][0]]
         return ret
 
     def __create_embedding_single(self, s: str, model: Literal["text-embedding-3-small", "text-embedding-3-large"]) -> list[float]:

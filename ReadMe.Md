@@ -67,6 +67,7 @@ for mit in atlas.mitigation_list:
 - summary(str) : 記述概要(リンクなどを削除し整形済み)
 - procedure(list[AtlasCaseStudyStep]) : ケーススタディのステップを表すオブジェクトのリスト(順番もこのまま)  
 AtlasCaseStudyStepの保有情報
+    - id (str) : AML.CS0000.0の形式で親ケーススタディーid + ステップ内部のリストの形式
     - technique(AtlasTechnique) : テクニックオブジェクト
     - tactic(AtlasTactic) : タクティックオブジェクト
     - description(str) : テクニックのdescriptionとは異なりケーススタディー固有のdescription
@@ -127,10 +128,21 @@ print("検索結果", mit.id)
 
 ### ケーススタディー検索
 
-1種類の検索関数を使用することができます。
+2種類の検索関数を使用することができます。
 #### ケーススタディーid検索
 idを元にケーススタディーを検索することができます。(idが存在しない場合はValueErrorをraiseします)
 ```python
 cs = atlas.search_cs_from_id(id="AML.CS0026")
 print("検索結果", cs.id)
+```
+
+#### クエリからのケーススタディーステップのベクトル検索
+クエリを元にケーススタディーのdescriptionに対して最も近い意味を持つステップを返します。
+```python
+ret = atlas.search_relevant_casestudy(query="RAG LLM API", top_k=3)
+for cs_step in ret:
+    print("ケーススタディーステップのID", cs_step.id)
+    print("ケーススタディーステップが紐づくテクニックのid", cs_step.technique.id)
+    print("ケーススタディーステップの親ケーススタディーのid", cs_step.parent_id)
+    print("ケーススタディーステップのdescription", cs_step.description)
 ```
