@@ -119,7 +119,7 @@ class Atlas:  # Atlasの機能を保持したクラス
     def __init__(
         self,
         *,  # 以下をキーワード引数に
-        version: Literal["4.8.0", "4.9.0"] = "4.9.0",
+        version: Literal["4.8.0", "4.9.0", "5.0.0"] = "5.0.0",
         emb_model: Literal["text-embedding-3-small", "text-embedding-3-large"] = "text-embedding-3-large",
         initialize_vector: bool = False,
     ) -> None:
@@ -550,7 +550,7 @@ class Atlas:  # Atlasの機能を保持したクラス
 
 def main() -> None:  # テスト用関数
     load_dotenv(dotenv_path="/workspace/.env", override=True)
-    atlas = Atlas(version="4.9.0", emb_model="text-embedding-3-large", initialize_vector=True)
+    atlas = Atlas(version="5.0.0", emb_model="text-embedding-3-large", initialize_vector=True)
 
     print("テクニック数:", len(atlas.technique_list))
     print("緩和策数:", len(atlas.mitigation_list))
@@ -571,8 +571,8 @@ def main() -> None:  # テスト用関数
 
     print("ケーススタディーのID", atlas.casestudy_list[0].id)
     print("ケーススタディーの名前", atlas.casestudy_list[0].name)
-    print("ケーススタディーの説明", atlas.casestudy_list[0].description)
-    print("ケーススタディーのステップ", [tec.id for tec in atlas.casestudy_list[0].technique_list])
+    print("ケーススタディーの説明", atlas.casestudy_list[0].summary)
+    print("ケーススタディーのステップ", [step.technique.id for step in atlas.casestudy_list[0].procedure])
     print("=================")
 
     test_query = "Please search techniques about LLM and RAG"
