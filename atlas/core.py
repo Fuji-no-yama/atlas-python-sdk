@@ -119,10 +119,19 @@ class Atlas:  # Atlasの機能を保持したクラス
     def __init__(
         self,
         *,  # 以下をキーワード引数に
-        version: Literal["4.8.0", "4.9.0", "5.0.0"] = "5.0.0",
+        version: Literal["4.4.0", "4.5.0", "4.6.0", "4.7.0", "4.8.0", "4.9.0", "5.0.0"] = "5.0.0",
         emb_model: Literal["text-embedding-3-small", "text-embedding-3-large"] = "text-embedding-3-large",
         initialize_vector: bool = False,
     ) -> None:
+        """
+        Args:
+            version (str): 使用するATLASのバージョン (現在は"4.4.0", "4.5.0", "4.6.0", "4.7.0", "4.8.0", "4.9.0", "5.0.0"のいずれか)
+            emb_model (str): ベクトル化に使用するモデル
+            initialize_vector (bool): ベクトルDBを初期化するかどうか(デフォルトはFalse。TrueにするとベクトルDBを再構築する)
+        """
+        if version not in ["4.4.0", "4.5.0", "4.6.0", "4.7.0", "4.8.0", "4.9.0", "5.0.0"]:
+            err_msg = f"version must be one of '4.4.0', '4.5.0', '4.6.0', '4.7.0', '4.8.0', '4.9.0', '5.0.0'. '{version}' is given."
+            raise ValueError(err_msg)
         self.version = f"v{version}"
         self.data_dir_path = files("atlas.data").joinpath(f"versions/{self.version}")  # パッケージ内のdataディレクトリ
         self.user_data_dir_path = Path(user_data_dir("atlas")) / "versions" / self.version  # ユーザ側dataディレクトリ
@@ -161,19 +170,24 @@ class Atlas:  # Atlasの機能を保持したクラス
             obj = self.__search_object_from_snake_case_name(snake_case_name)
             return f"{obj.name}({obj.id})"
 
-        return re.sub(r"{{ create_internal_link\((.*?)\) }}", replace_snake_case_with_name, desc)
+        s = re.sub(r"{{ create_internal_link\((.*?)\) }}", replace_snake_case_with_name, desc)  # v4.6.0以降はこちらで削除
+        return re.sub(r"{{(.*?)\.name}}", replace_snake_case_with_name, s)  # v4.4.0~v4.5.0はこちらで削除
 
     def __search_object_from_snake_case_name(self, snake_case_name: str) -> AtlasTactic | AtlasTechnique | AtlasMitigation:
-        for tactic in self.tactic_list:
-            if tactic.snake_case_name == snake_case_name:
-                return tactic
-        for tec in self.technique_list:
-            if tec.snake_case_name == snake_case_name:
-                return tec
-        for mit in self.mitigation_list:
-            if mit.snake_case_name == snake_case_name:
-                return mit
-        err_msg = f"Object with snake_case_name '{snake_case_name}' not found."
+        if hasattr(self, "tactic_list"):
+            for tactic in self.tactic_list:
+                if tactic.snake_case_name == snake_case_name:
+                    return tactic
+        if hasattr(self, "technique_list"):
+            for tec in self.technique_list:
+                if tec.snake_case_name == snake_case_name:
+                    return tec
+        if hasattr(self, "mitigation_list"):
+            for mit in self.mitigation_list:
+                if mit.snake_case_name == snake_case_name:
+                    return mit
+        err_msg = f"Object with snake_case_name '{snake_case_name}' not found. "
+        err_msg += f"available or not -> tactic_list:{hasattr(self, 'tactic_list')}, technique_list: {hasattr(self, 'technique_list')}, mitigation_list: {hasattr(self, 'mitigation_list')}"  # noqa: E501
         raise ValueError(err_msg)
 
     def __create_tactic_list(self) -> None:
@@ -274,7 +288,7 @@ class Atlas:  # Atlasの機能を保持したクラス
             for i, step in enumerate(yaml_data["procedure"]):
                 if re.search(r"AML\.TA\d{4}", step["tactic"]):  # AML.TA0000の形式で記述されている場合
                     tac_id = re.findall(r"(AML\..*)", step["tactic"])[0]
-                    tac = self.search_tec_from_id(tec_id=tac_id)
+                    tac = self.search_tac_from_id(tac_id=tac_id)
                 else:  # 通常のsnake_case + .id で記述されている場合
                     tac_snake_case_name = re.findall(r"{{(.*)\.id}}", step["tactic"])[0]
                     tac = self.__search_object_from_snake_case_name(snake_case_name=tac_snake_case_name)
@@ -405,6 +419,22 @@ class Atlas:  # Atlasの機能を保持したクラス
             if tec.id == tec_id:
                 return tec
         err_msg = f"'{tec_id}'が検索の結果見つかりませんでした。"
+        raise ValueError(err_msg)  # IDが見つからなかった場合はエラーを返す
+
+    def search_tac_from_id(self, tac_id: str) -> AtlasTactic:  # IDからテクニックを検索する関数
+        """
+        IDからタクティクスを検索する関数
+
+        Args:
+            tac_id (str): タクティクスのID 例:AML.TA0001
+
+        Returns:
+            AtlasTactic: 検索されたタクティクスオブジェクト
+        """
+        for tac in self.tactic_list:
+            if tac.id == tac_id:
+                return tac
+        err_msg = f"'{tac_id}'が検索の結果見つかりませんでした。"
         raise ValueError(err_msg)  # IDが見つからなかった場合はエラーを返す
 
     def search_mit_from_id(self, mit_id: str) -> AtlasMitigation:  # IDからテクニックを検索する関数
@@ -550,7 +580,7 @@ class Atlas:  # Atlasの機能を保持したクラス
 
 def main() -> None:  # テスト用関数
     load_dotenv(dotenv_path="/workspace/.env", override=True)
-    atlas = Atlas(version="5.0.0", emb_model="text-embedding-3-large", initialize_vector=True)
+    atlas = Atlas(version="5.0.0", emb_model="text-embedding-3-large", initialize_vector=False)
 
     print("テクニック数:", len(atlas.technique_list))
     print("緩和策数:", len(atlas.mitigation_list))
