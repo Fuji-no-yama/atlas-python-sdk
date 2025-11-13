@@ -119,18 +119,18 @@ class Atlas:  # Atlasの機能を保持したクラス
     def __init__(
         self,
         *,  # 以下をキーワード引数に
-        version: Literal["4.4.0", "4.5.0", "4.6.0", "4.7.0", "4.8.0", "4.9.0", "5.0.0"] = "5.0.0",
+        version: Literal["4.4.0", "4.5.0", "4.6.0", "4.7.0", "4.8.0", "4.9.0", "5.0.0", "5.1.0"] = "5.1.0",
         emb_model: Literal["text-embedding-3-small", "text-embedding-3-large"] = "text-embedding-3-large",
         initialize_vector: bool = False,
     ) -> None:
         """
         Args:
-            version (str): 使用するATLASのバージョン (現在は"4.4.0", "4.5.0", "4.6.0", "4.7.0", "4.8.0", "4.9.0", "5.0.0"のいずれか)
+            version (str): 使用するATLASのバージョン (現在は"4.4.0", "4.5.0", "4.6.0", "4.7.0", "4.8.0", "4.9.0", "5.0.0", "5.1.0"のいずれか)
             emb_model (str): ベクトル化に使用するモデル
             initialize_vector (bool): ベクトルDBを初期化するかどうか(デフォルトはFalse。TrueにするとベクトルDBを再構築する)
         """
-        if version not in ["4.4.0", "4.5.0", "4.6.0", "4.7.0", "4.8.0", "4.9.0", "5.0.0"]:
-            err_msg = f"version must be one of '4.4.0', '4.5.0', '4.6.0', '4.7.0', '4.8.0', '4.9.0', '5.0.0'. '{version}' is given."
+        if version not in ["4.4.0", "4.5.0", "4.6.0", "4.7.0", "4.8.0", "4.9.0", "5.0.0", "5.1.0"]:
+            err_msg = f"version must be one of '4.4.0', '4.5.0', '4.6.0', '4.7.0', '4.8.0', '4.9.0', '5.0.0', '5.1.0'. '{version}' is given."
             raise ValueError(err_msg)
         self.version = f"v{version}"
         self.data_dir_path = files("atlas.data").joinpath(f"versions/{self.version}")  # パッケージ内のdataディレクトリ
@@ -580,7 +580,7 @@ class Atlas:  # Atlasの機能を保持したクラス
 
 def main() -> None:  # テスト用関数
     load_dotenv(dotenv_path="/workspace/.env", override=True)
-    atlas = Atlas(version="5.0.0", emb_model="text-embedding-3-large", initialize_vector=False)
+    atlas = Atlas(version="5.1.0", emb_model="text-embedding-3-large", initialize_vector=False)
 
     print("テクニック数:", len(atlas.technique_list))
     print("緩和策数:", len(atlas.mitigation_list))
