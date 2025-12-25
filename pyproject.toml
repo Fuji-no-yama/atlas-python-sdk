@@ -27,21 +27,3 @@ dependencies = [
   "platformdirs>=4.3.7",
   "polars",
 ]
-
-[project.urls]
-Homepage = "https://github.com/Fuji-no-yama/atlas-python-sdk"
-
-[tool.ruff]
-select = ["ALL"]
-ignore = ["D", "S", "PTH", "RET", "ASYNC", "T201", "RUF"]
-# D: ドックストリング関連
-# S: 安全規則関連(picklなど)
-# PTH: pathlib推奨
-# RET: 戻り値の最適化
-# ASYNC: 非同期関連
-# T201: printの制限
-# RUF: カタカナの「ノ」の制約など
-
-# 自動修正から除外したいルールを指定
-unfixable = ["F401", "E501"] # 例: 未使用importや行長制限など
-line-length = 150

@@ -1,6 +1,4 @@
 # added content
-.devcontainer/*
-.vscode/*
 .venv
 tmp/*
 uv.lock
