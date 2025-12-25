@@ -1,3 +1,0 @@
-# .devcontainerと.vscodeは受け付けない
-.devcontainer/** merge=ours
-.vscode/** merge=ours
