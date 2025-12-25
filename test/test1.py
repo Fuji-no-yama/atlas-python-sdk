@@ -5,7 +5,7 @@ from atlas.core import Atlas
 
 def main() -> None:  # テスト用関数
     load_dotenv(dotenv_path="/workspace/.env.dev", override=True)
-    atlas = Atlas(version="5.1.0", emb_model="text-embedding-3-large", initialize_vector=False)
+    atlas = Atlas(version="5.2.0", emb_model="text-embedding-3-large", initialize_vector=False)
 
     print("テクニック数:", len(atlas.technique_list))
     print("緩和策数:", len(atlas.mitigation_list))

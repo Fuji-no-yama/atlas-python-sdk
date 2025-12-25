@@ -15,10 +15,10 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env.dev", env_file_encoding="utf-8")
     openai_api_key: str = Field("", alias="OPENAI_API_KEY")
     available_versions: list[str] = Field(
-        default_factory=lambda: ["4.4.0", "4.5.0", "4.6.0", "4.7.0", "4.8.0", "4.9.0", "5.0.0", "5.1.0"],
+        default_factory=lambda: ["4.4.0", "4.5.0", "4.6.0", "4.7.0", "4.8.0", "4.9.0", "5.0.0", "5.1.0", "5.2.0"],
         alias="ATLAS_AVAILABLE_VERSIONS",
     )
-    latest_version: str = Field("5.1.0", alias="ATLAS_LATEST_VERSION")
+    latest_version: str = Field("5.2.0", alias="ATLAS_LATEST_VERSION")
 
     # .env > init kwargs > OS env の優先順位を維持
     @classmethod
