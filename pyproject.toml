@@ -9,7 +9,7 @@ include-package-data = true
 atlas = ["data/**/*"]
 
 [tool.setuptools.packages.find]
-include = ["atlas"]
+include = ["atlas", "atlas.entities", "atlas.config"]
 
 [project]
 name = "atlas"
