@@ -2,22 +2,27 @@
 MITRE ATLAS についてPythonから気軽にデータを利用できるようにすることを目的としたライブラリです。
 
 # インストール方法
-- インストール方法: `pip install git+https://github.com/Fuji-no-yama/atlas-python-sdk`
-- アップグレード方法: `pip install -U git+https://github.com/Fuji-no-yama/atlas-python-sdk`
+## pipの場合
+- インストール方法: `pip install git+https://github.com/Fuji-no-yama/atlas-python-sdk@1.0.1`
+- アップグレード方法: `pip install -U git+https://github.com/Fuji-no-yama/atlas-python-sdk@1.0.1`
 - 削除方法: `pip uninstall atlas`
+
+## uvの場合
+- インストール・アップグレード方法: `uv add git+https://github.com/Fuji-no-yama/atlas-python-sdk --tag 1.0.1`
+- 削除方法: `uv remove atlas`
 
 # 使い方
 ## インスタンスの作成方法
 基本的なインスタンスの作成方法は以下のとおりです。(versionは指定しない場合は最新のものになります)
 ```python
 from atlas.core import Atlas
-atlas = Atlas(version="5.1.0")
+atlas = Atlas(version="5.2.0")
 ```
 初回実行時には自動でローカルにベクトルDBを作成します。ただし、その後にembeddingモデルを変えたい・もう一度ベクトルDBを初期化したいなどの場合には以下の方法で初期化を行えます。  
 (embedding modelはtext-embeddingのsmallとlargeを選択できます。)
 ```python
 from atlas.core import Atlas
-atlas = Atlas(version="5.1.0", emb_model="text-embedding-3-small", initialize_vector=True)
+atlas = Atlas(version="5.2.0", emb_model="text-embedding-3-small", initialize_vector=True)
 ```
 ## 機能一覧
 
