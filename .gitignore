@@ -1,10 +1,10 @@
 # added content
-.devcontainer/
-.vscode/
+.devcontainer/*
+.vscode/*
 .venv
 tmp/*
-uv.lock
 .DS_Store
+.env.dev
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
