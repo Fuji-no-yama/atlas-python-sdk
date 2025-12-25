@@ -6,6 +6,7 @@ ATLASを表現するクラス
 
 import os
 import re
+import shutil
 from collections.abc import Iterator, Sequence
 from contextlib import suppress
 from importlib.resources import files
@@ -269,9 +270,13 @@ class Atlas:  # Atlasの機能を保持したクラス
             self.casestudy_list.append(casestudy)
 
     def __initialize_vector(self, model: Literal["text-embedding-3-small", "text-embedding-3-large"]) -> None:
-        self.__initialize_technique_vector(model=model)  # テクニックのベクトルDBを初期化
-        self.__initialize_casestudy_vector(model=model)
-        print("ベクトルDBの初期化が完了しました。")  # 初期化完了のメッセージ
+        try:
+            self.__initialize_technique_vector(model=model)  # テクニックのベクトルDBを初期化
+            self.__initialize_casestudy_vector(model=model)
+            print("ベクトルDBの初期化が完了しました。")  # 初期化完了のメッセージ
+        except Exception:
+            shutil.rmtree(str(self.user_data_dir_path.joinpath("chroma")))  # 初期化失敗時は変に残らないように削除
+            raise
 
     def __initialize_technique_vector(self, model: Literal["text-embedding-3-small", "text-embedding-3-large"]) -> None:
         # ベクトルdb(chroma)とavroファイルの両方を初期化する関数
