@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  workspace:
+    container_name: ${CONTAINER_NAME}
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile.work
+    environment:
+      PYTHONPATH: /workspace
+      UV_LINK_MODE: copy
+    volumes:
+      - ..:/workspace
+    command: sleep infinity

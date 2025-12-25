@@ -1,0 +1,19 @@
+FROM python:3.10
+USER root
+
+# uvのインストール
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin
+
+RUN apt-get update && \
+    pip install --upgrade pip && \
+    apt-get install -y git
+
+
+WORKDIR /workspace
+
+# その他便利ツールのインストール
+# RUN apt-get -y install --reinstall ca-certificates && \
+#     apt-get -y install software-properties-common && \
+#     apt-get install -y sudo wget vim curl gawk make gcc && \
+#     apt-get install -y graphviz xdg-utils && \
+#     apt-get install iputils-ping net-tools

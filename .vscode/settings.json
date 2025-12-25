@@ -1,0 +1,21 @@
+{
+    "[python]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit",
+        "source.organizeImports": "explicit"
+        },
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    },
+    "ruff.path": [".venv/bin/ruff"],
+    "ruff.configuration": "${workspaceFolder}/pyproject.toml",
+    "ruff.configurationPreference": "filesystemFirst",
+    "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/__pycache__": true,
+        "**/*.pyc": true,
+    },
+    "python.languageServer": "None"
+}

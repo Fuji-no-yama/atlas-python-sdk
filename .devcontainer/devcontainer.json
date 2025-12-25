@@ -1,0 +1,28 @@
+{
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "workspace",
+    "workspaceFolder": "/workspace",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-toolsai.jupyter",
+                "mhutchie.git-graph",
+                "ms-azuretools.vscode-docker",
+                "ms-vscode-remote.remote-ssh",
+                "github.copilot",
+                "charliermarsh.ruff",
+                "astral-sh.ty"
+            ],
+            "settings": {
+                "workbench.colorCustomizations": {
+                    "titleBar.activeForeground": "#ffffff",
+                    "activityBar.background": "#32820573",
+                    "activityBar.foreground": "#ffffff"
+                },
+                "python.defaultInterpreterPath": "/workspace/.venv/bin/python"
+            }
+        }
+    },
+    "postCreateCommand": "uv venv --clear && uv sync"
+}
