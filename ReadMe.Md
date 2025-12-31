@@ -117,7 +117,7 @@ print("検索結果", tec.id)
 - filter引数: 子テクニックのみ・親テクニックのみ・両方(全テクニック) の3種類から選択できます。
 ```python
 test_query = "Please search techniques about LLM and RAG"
-searched_tec_lis = atlas.search_relevant_technique(query=test_query, top_k=5, filter_parent="both")
+searched_tec_lis = atlas.search_relevant_technique(query=test_query, top_k=5, filter="both")
 print("検索結果", [tec.id for tec in searched_tec_lis])
 ```
 
