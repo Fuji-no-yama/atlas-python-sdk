@@ -7,7 +7,6 @@ ATLASを表現するクラス
 import os
 import re
 import shutil
-from collections.abc import Iterator, Sequence
 from contextlib import suppress
 from importlib.resources import files
 from pathlib import Path
@@ -19,9 +18,10 @@ import yaml
 from chromadb.api.models.Collection import Collection
 from chromadb.errors import NotFoundError
 from chromadb.utils import embedding_functions
-from openai import OpenAI
 from platformdirs import user_data_dir
 
+from atlas.config.settings import settings
+from atlas.config.utils import create_embedding_multiple
 from atlas.entities import AtlasCaseStudy, AtlasCaseStudyStep, AtlasMitigation, AtlasTactic, AtlasTechnique
 
 if TYPE_CHECKING:
@@ -288,14 +288,14 @@ class Atlas:  # Atlasの機能を保持したクラス
             id_list.append(tec.id)
             desc_list.append(tec.description)
             metadata_list.append({"is_parent": not tec.have_parent})
-        vector_list: list[list[int | float]] = self.__create_embedding_multiple(s_list=desc_list, model=model)
+        vector_list: list[list[int | float]] = create_embedding_multiple(s_list=desc_list, model=model)
         vector_df = pl.DataFrame({"ID": id_list, "vector": vector_list})
         vector_df.write_avro(str(self.data_dir_path.joinpath("technique_vector.avro")))  # vector-DBを作成
         # ベクトルDB(chroma)の初期化
         with suppress(NotFoundError):
             self.chroma_client.delete_collection(name="atlas_technique")  # 存在する場合は一度削除してリセット
         openai_ef = embedding_functions.OpenAIEmbeddingFunction(  # ベクトル化関数
-            api_key=os.environ["OPENAI_API_KEY"],
+            api_key=settings.openai_api_key,
             model_name=model,
         )
         collection: Collection = self.chroma_client.get_or_create_collection(
@@ -318,14 +318,14 @@ class Atlas:  # Atlasの機能を保持したクラス
                 desc_list.append(step.description)
                 metadata_list.append({"step_number": i})
 
-        vector_list: list[list[int | float]] = self.__create_embedding_multiple(s_list=desc_list, model=model)
+        vector_list: list[list[int | float]] = create_embedding_multiple(s_list=desc_list, model=model)
         vector_df = pl.DataFrame({"ID": id_list, "vector": vector_list})
         vector_df.write_avro(str(self.data_dir_path.joinpath("casestudy_vector.avro")))  # vector-DBを作成
         # ベクトルDB(chroma)の初期化
         with suppress(NotFoundError):
             self.chroma_client.delete_collection(name="atlas_casestudy")  # 存在する場合は一度削除してリセット
         openai_ef = embedding_functions.OpenAIEmbeddingFunction(  # ベクトル化関数
-            api_key=os.environ["OPENAI_API_KEY"],
+            api_key=settings.openai_api_key,
             model_name=model,
         )
         collection: Collection = self.chroma_client.get_or_create_collection(
@@ -340,7 +340,7 @@ class Atlas:  # Atlasの機能を保持したクラス
         model: Literal["text-embedding-3-small", "text-embedding-3-large"],
     ) -> Collection:  # chromaDBを起動する関数
         openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-            api_key=os.environ["OPENAI_API_KEY"],
+            api_key=settings.openai_api_key,
             model_name=model,
         )
         collection: Collection = self.chroma_client.get_collection(name="atlas_technique", embedding_function=openai_ef)  # ty:ignore[invalid-argument-type]
@@ -351,7 +351,7 @@ class Atlas:  # Atlasの機能を保持したクラス
         model: Literal["text-embedding-3-small", "text-embedding-3-large"],
     ) -> Collection:  # chromaDBを起動する関数
         openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-            api_key=os.environ["OPENAI_API_KEY"],
+            api_key=settings.openai_api_key,
             model_name=model,
         )
         collection: Collection = self.chroma_client.get_collection(name="atlas_casestudy", embedding_function=openai_ef)  # ty:ignore[invalid-argument-type]
@@ -483,48 +483,3 @@ class Atlas:  # Atlasの機能を保持したクラス
         result = self.casestudy_chroma_collection.query(query_texts=[query], n_results=top_k)
         ret: list[AtlasCaseStudyStep] = [self.search_cs_step_from_id(cs_step_id=cs_step_id) for cs_step_id in result["ids"][0]]
         return ret
-
-    def __create_embedding_single(self, s: str, model: Literal["text-embedding-3-small", "text-embedding-3-large"]) -> list[float]:
-        """
-        文字列1つのみを1つのベクトルに変換する関数
-
-        Args:
-            s (str): ベクトル化対象文字列
-            model (str): ベクトル化モデル
-
-        Returns:
-            list[float]: ベクトル
-        """
-        client = OpenAI()
-        response = client.embeddings.create(
-            input=s,
-            model=model,
-        )
-        return response.data[0].embedding
-
-    def __create_embedding_multiple(self, s_list: list[str], model: Literal["text-embedding-3-small", "text-embedding-3-large"]) -> list[list[float]]:
-        """
-        複数の文字列を複数のベクトルに変換する関数(長さによって10個ずつに区切ってベクトル化)
-
-        Args:
-            s_list (list[str]): ベクトル化対象文字列のリスト
-            model (str): ベクトル化モデル
-
-        Returns:
-            list[list[float]]: ベクトルのリスト
-        """
-        client = OpenAI()
-        ret_list: list[list[float]] = []
-
-        def chunked_iterable(iterable: Sequence[T], chunk_size: int) -> Iterator[Sequence[T]]:
-            """指定されたサイズで iterable をチャンクに分割する"""
-            for i in range(0, len(iterable), chunk_size):
-                yield iterable[i : i + chunk_size]
-
-        for chunk in chunked_iterable(s_list, 10):
-            response = client.embeddings.create(
-                input=chunk,  # ty:ignore[invalid-argument-type]
-                model=model,
-            )
-            ret_list += [d.embedding for d in response.data]
-        return ret_list
