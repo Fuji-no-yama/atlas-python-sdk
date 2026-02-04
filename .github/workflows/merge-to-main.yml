@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version tag (e.g., v1.0.0) - leave empty to just merge'
+        description: 'Version tag (e.g., 1.0.0) - leave empty to just merge'
         required: false
         type: string
 
@@ -33,6 +33,7 @@ jobs:
           git checkout dev -- ReadMe.Md
           git checkout dev -- pyproject.toml
           git checkout dev -- .github/workflows/
+          git checkout dev -- test/
       
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
