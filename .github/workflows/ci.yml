@@ -2,12 +2,13 @@ name: CI
 
 on:
   push:
-    branches: [ dev ]
+    branches: [ dev, tmp ]
   pull_request:
-    branches: [ dev ]
+    branches: [ dev, tmp ]
 
 jobs:
-  test:
+  test-dev:
+    name: Test (Development Mode)
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -33,4 +34,44 @@ jobs:
     
     - name: Run tests
       run: |
+        python -m pytest test/ -v
+
+  test-installed:
+    name: Test (Installed Package)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    
+    env:
+      ATLAS_TEST_FLAG: ${{ secrets.ATLAS_TEST_FLAG }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Build package
+      run: |
+        python -m pip install --upgrade pip build
+        python -m build
+    
+    - name: Copy tests to temporary location
+      run: |
+        mkdir -p /tmp/atlas-test
+        cp -r test /tmp/atlas-test/
+    
+    - name: Install from wheel and remove source
+      run: |
+        pip install pytest
+        pip install dist/*.whl
+        rm -rf atlas/
+    
+    - name: Test installed package
+      run: |
+        cd /tmp/atlas-test
         python -m pytest test/ -v
