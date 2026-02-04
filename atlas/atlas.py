@@ -59,18 +59,21 @@ class Atlas:  # Atlasの機能を保持したクラス
         self.__create_mit_list()
         self.__create_casestudy_list()
         self.__clean_description()  # 全ての記述内部に埋め込まれているリンクを削除
-        if not os.path.isdir(str(self.user_data_dir_path.joinpath("chroma"))):  # ユーザ側のディレクトリが存在しない場合
-            print("ベクトルDBの設定がありません。初期化し作成します...")
-            initialize_vector = True  # 初期実行時なので初期化を行う
-        self.chroma_client: ClientAPI = chromadb.PersistentClient(str(self.user_data_dir_path.joinpath("chroma")))
-        if initialize_vector or not os.path.isdir(self.user_data_dir_path.joinpath("chroma")):
-            # 初期化が選択されている or 指定バージョンのvector DBが存在しない場合
-            self.__initialize_vector(model=emb_model)
-            self.__create_tec_list()  # ベクトルを新しい物に置き換えて再実行
-            self.__create_mit_list()  # ベクトルを新しい物に置き換えて再実行
-            self.__clean_description()  # 全ての記述内部に埋め込まれているリンクを削除(作り直してしまうためもう一度)
-        self.technique_chroma_collection: Collection = self.__get_technique_chroma_collection(model=emb_model)
-        self.casestudy_chroma_collection: Collection = self.__get_casestudy_chroma_collection(model=emb_model)
+        if not settings.atlas_test_flag:
+            if not os.path.isdir(str(self.user_data_dir_path.joinpath("chroma"))):  # ユーザ側のディレクトリが存在しない場合
+                print("ベクトルDBの設定がありません。初期化し作成します...")
+                initialize_vector = True  # 初期実行時なので初期化を行う
+            self.chroma_client: ClientAPI = chromadb.PersistentClient(str(self.user_data_dir_path.joinpath("chroma")))
+            if initialize_vector or not os.path.isdir(self.user_data_dir_path.joinpath("chroma")):
+                # 初期化が選択されている or 指定バージョンのvector DBが存在しない場合
+                self.__initialize_vector(model=emb_model)
+                self.__create_tec_list()  # ベクトルを新しい物に置き換えて再実行
+                self.__create_mit_list()  # ベクトルを新しい物に置き換えて再実行
+                self.__clean_description()  # 全ての記述内部に埋め込まれているリンクを削除(作り直してしまうためもう一度)
+            self.technique_chroma_collection: Collection = self.__get_technique_chroma_collection(model=emb_model)
+            self.casestudy_chroma_collection: Collection = self.__get_casestudy_chroma_collection(model=emb_model)
+        else:
+            print("Atlas is initialized in test mode. Vector DB functionalities are disabled.")
 
     def __clean_description(self) -> None:
         for tac in self.tactic_list:
@@ -456,6 +459,9 @@ class Atlas:  # Atlasの機能を保持したクラス
         Returns:
             list[Atlas_Technique]: top_kで指定された個数分上位の結果をテクニックオブジェクト
         """
+        if settings.atlas_test_flag:
+            err_msg = "テストモードのため、ベクトルDB検索は無効化されています。"
+            raise ValueError(err_msg)
         if filter == "parent":
             result = self.technique_chroma_collection.query(query_texts=[query], n_results=top_k, where={"is_parent": True})
         elif filter == "child":
@@ -480,6 +486,9 @@ class Atlas:  # Atlasの機能を保持したクラス
         Returns:
             list[AtlasCaseStudyStep]: top_kで指定された個数分上位の結果をケーススタディーのステップオブジェクト
         """
+        if settings.atlas_test_flag:
+            err_msg = "テストモードのため、ベクトルDB検索は無効化されています。"
+            raise ValueError(err_msg)
         result = self.casestudy_chroma_collection.query(query_texts=[query], n_results=top_k)
         ret: list[AtlasCaseStudyStep] = [self.search_cs_step_from_id(cs_step_id=cs_step_id) for cs_step_id in result["ids"][0]]
         return ret

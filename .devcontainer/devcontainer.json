@@ -12,7 +12,8 @@
                 "ms-vscode-remote.remote-ssh",
                 "github.copilot",
                 "charliermarsh.ruff",
-                "astral-sh.ty"
+                "astral-sh.ty",
+                "github.vscode-github-actions"
             ],
             "settings": {
                 "workbench.colorCustomizations": {

@@ -19,6 +19,7 @@ class Settings(BaseSettings):
         alias="ATLAS_AVAILABLE_VERSIONS",
     )
     latest_version: str = Field("5.2.0", alias="ATLAS_LATEST_VERSION")
+    atlas_test_flag: bool = Field(default=False, alias="ATLAS_TEST_FLAG")
 
     # .env > init kwargs > OS env の優先順位を維持
     @classmethod
