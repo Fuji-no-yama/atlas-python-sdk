@@ -2,9 +2,10 @@
 Atlasクラスの応用テスト(APIキーの使用)
 """
 
-import logging
 import os
 import re
+
+import pytest
 
 from atlas.atlas import AtlasTechnique
 from atlas.core import Atlas
@@ -16,9 +17,7 @@ class TestAtlas:
         全体のAtlasインスタンスをテストする
         """
         if os.environ["ATLAS_TEST_FLAG"] == "True":
-            logging.info("APIキーを用いたテストはスキップされます。")  # noqa: LOG015
-            assert True  # 簡易テストの場合はスキップ
-            return
+            pytest.skip("APIキーを用いたテストはスキップされます。")
         atlas = Atlas(initialize_vector=True)  # 最新版のみについてテスト
         self.check_atlas(atlas)
 
