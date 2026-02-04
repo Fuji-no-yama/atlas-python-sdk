@@ -10,12 +10,13 @@ on:
 
 jobs:
   test:
+    name: Test (Production Mode)
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
     env:
-      ATLAS_TEST_FLAG: ${{ secrets.ATLAS_TEST_FLAG }}
+      ATLAS_TEST_FLAG: False
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
     steps:
@@ -58,6 +59,8 @@ jobs:
   merge:
     needs: test
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:

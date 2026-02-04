@@ -16,13 +16,13 @@ MITRE ATLAS についてPythonから気軽にデータを利用できるよう�
 基本的なインスタンスの作成方法は以下のとおりです。(versionは指定しない場合は最新のものになります)
 ```python
 from atlas.core import Atlas
-atlas = Atlas(version="5.2.0")
+atlas = Atlas(version="5.3.0")
 ```
 初回実行時には自動でローカルにベクトルDBを作成します。ただし、その後にembeddingモデルを変えたい・もう一度ベクトルDBを初期化したいなどの場合には以下の方法で初期化を行えます。  
 (embedding modelはtext-embeddingのsmallとlargeを選択できます。)
 ```python
 from atlas.core import Atlas
-atlas = Atlas(version="5.2.0", emb_model="text-embedding-3-small", initialize_vector=True)
+atlas = Atlas(version="5.3.0", emb_model="text-embedding-3-small", initialize_vector=True)
 ```
 ## 機能一覧
 
