@@ -1,0 +1,95 @@
+name: Merge to Main
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v1.0.0) - leave empty to just merge'
+        required: false
+        type: string
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    env:
+      ATLAS_TEST_FLAG: ${{ secrets.ATLAS_TEST_FLAG }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      
+      - name: Fetch dev branch
+        run: git fetch origin dev:dev
+      
+      - name: Merge specific files from dev (locally)
+        run: |
+          git checkout dev -- atlas/
+          git checkout dev -- ReadMe.Md
+          git checkout dev -- pyproject.toml
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Build package
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
+      
+      - name: Test installation from built package
+        run: |
+          pip install pytest
+          pip install dist/*.whl
+          mkdir -p /tmp/atlas-test
+          cp -r test /tmp/atlas-test/
+          rm -rf atlas/
+          cd /tmp/atlas-test
+          python -m pytest test/ -v
+
+  merge:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Fetch dev branch
+        run: git fetch origin dev:dev
+      
+      - name: Merge specific files from dev
+        run: |
+          git checkout dev -- atlas/
+          git checkout dev -- ReadMe.Md
+          git checkout dev -- pyproject.toml
+      
+      - name: Commit and push to main
+        run: |
+          git add atlas/ ReadMe.Md pyproject.toml
+          git commit -m "Merge library files from dev for release ${{ github.event.inputs.version || 'update' }}" || echo "No changes to commit"
+          git push origin main
+      
+      - name: Create tag and release
+        if: github.event.inputs.version != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git tag ${{ github.event.inputs.version }}
+          git push origin ${{ github.event.inputs.version }}
+          gh release create ${{ github.event.inputs.version }} \
+            --title "${{ github.event.inputs.version }}" \
+            --notes "Release ${{ github.event.inputs.version }}" \
+            --target main
