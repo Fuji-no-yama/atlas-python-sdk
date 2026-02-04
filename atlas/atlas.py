@@ -37,7 +37,7 @@ class Atlas:  # Atlasの機能を保持したクラス
     def __init__(
         self,
         *,  # 以下をキーワード引数に
-        version: Literal["4.4.0", "4.5.0", "4.6.0", "4.7.0", "4.8.0", "4.9.0", "5.0.0", "5.1.0", "5.2.0", "5.3.0"] = "5.3.0",
+        version: str = "5.3.0",
         emb_model: Literal["text-embedding-3-small", "text-embedding-3-large"] = "text-embedding-3-large",
         initialize_vector: bool = False,
     ) -> None:
@@ -47,8 +47,9 @@ class Atlas:  # Atlasの機能を保持したクラス
             emb_model (str): ベクトル化に使用するモデル
             initialize_vector (bool): ベクトルDBを初期化するかどうか(デフォルトはFalse。TrueにするとベクトルDBを再構築する)
         """  # noqa: E501
-        if version not in ["4.4.0", "4.5.0", "4.6.0", "4.7.0", "4.8.0", "4.9.0", "5.0.0", "5.1.0", "5.2.0", "5.3.0"]:
-            err_msg = f"version must be one of '4.4.0', '4.5.0', '4.6.0', '4.7.0', '4.8.0', '4.9.0', '5.0.0', '5.1.0', '5.2.0', '5.3.0'. '{version}' is given."  # noqa: E501
+        available_versions: list[str] = self.get_available_versions()
+        if version not in available_versions:
+            err_msg = f"version must be one of {available_versions}. '{version}' is given."  # noqa: E501
             raise ValueError(err_msg)
         self.version = f"v{version}"
         self.data_dir_path: Traversable = files("atlas.data").joinpath(f"versions/{self.version}")  # パッケージ内のdataディレクトリ
@@ -492,3 +493,17 @@ class Atlas:  # Atlasの機能を保持したクラス
         result = self.casestudy_chroma_collection.query(query_texts=[query], n_results=top_k)
         ret: list[AtlasCaseStudyStep] = [self.search_cs_step_from_id(cs_step_id=cs_step_id) for cs_step_id in result["ids"][0]]
         return ret
+
+    def get_available_versions(self) -> list[str]:
+        """
+        利用可能なATLASのバージョン一覧を取得する関数
+
+        Returns:
+            list[str]: 利用可能なATLASのバージョン一覧
+        """
+        versions: list[str] = []
+        for p in files("atlas.data").joinpath("versions").iterdir():
+            if re.match(r"v\d\.\d\.\d", p.name):
+                version = p.name.lstrip("v")
+                versions.append(version)
+        return sorted(versions)

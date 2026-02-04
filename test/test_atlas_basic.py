@@ -3,7 +3,6 @@ Atlasクラスの基本的なテスト
 """
 
 import re
-from pathlib import Path
 
 from atlas.core import Atlas
 
@@ -20,16 +19,9 @@ class TestAtlas:
         """
         全体のAtlasインスタンスをテストする
         """
-        # バージョンディレクトリを取得（絶対パスで）
-        versions_dir = Path(__file__).parent.parent / "atlas" / "data" / "versions"
-        available_versions: list[str] = [
-            d.name[1:]  # "v5.2.0" -> "5.2.0"
-            for d in versions_dir.iterdir()
-            if d.is_dir() and d.name.startswith("v") and d.name[1:2].isdigit()
-        ]
-
-        for version in available_versions:
-            atlas = Atlas(initialize_vector=True, version=version)  # type: ignore[arg-type]
+        atlas = Atlas(initialize_vector=True)
+        for version in atlas.get_available_versions():
+            atlas = Atlas(initialize_vector=True, version=version)
             self.check_atlas(atlas)
 
     def check_atlas(self, atlas: Atlas) -> None:
