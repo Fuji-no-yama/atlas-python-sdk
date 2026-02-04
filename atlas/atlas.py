@@ -7,7 +7,6 @@ ATLASを表現するクラス
 import os
 import re
 import shutil
-from collections.abc import Iterator, Sequence
 from contextlib import suppress
 from importlib.resources import files
 from pathlib import Path
@@ -19,9 +18,10 @@ import yaml
 from chromadb.api.models.Collection import Collection
 from chromadb.errors import NotFoundError
 from chromadb.utils import embedding_functions
-from openai import OpenAI
 from platformdirs import user_data_dir
 
+from atlas.config.settings import settings
+from atlas.config.utils import create_embedding_multiple
 from atlas.entities import AtlasCaseStudy, AtlasCaseStudyStep, AtlasMitigation, AtlasTactic, AtlasTechnique
 
 if TYPE_CHECKING:
@@ -37,18 +37,19 @@ class Atlas:  # Atlasの機能を保持したクラス
     def __init__(
         self,
         *,  # 以下をキーワード引数に
-        version: Literal["4.4.0", "4.5.0", "4.6.0", "4.7.0", "4.8.0", "4.9.0", "5.0.0", "5.1.0", "5.2.0"] = "5.2.0",
+        version: str = "5.3.0",
         emb_model: Literal["text-embedding-3-small", "text-embedding-3-large"] = "text-embedding-3-large",
         initialize_vector: bool = False,
     ) -> None:
         """
         Args:
-            version (str): ATLASデータバージョン ("4.4.0", "4.5.0", "4.6.0", "4.7.0", "4.8.0", "4.9.0", "5.0.0", "5.1.0", "5.2.0"のいずれか) defaultは5.2.0
+            version (str): ATLASデータバージョン ("4.4.0", "4.5.0", "4.6.0", "4.7.0", "4.8.0", "4.9.0", "5.0.0", "5.1.0", "5.2.0", "5.3.0"のいずれか) defaultは5.3.0
             emb_model (str): ベクトル化に使用するモデル
             initialize_vector (bool): ベクトルDBを初期化するかどうか(デフォルトはFalse。TrueにするとベクトルDBを再構築する)
         """  # noqa: E501
-        if version not in ["4.4.0", "4.5.0", "4.6.0", "4.7.0", "4.8.0", "4.9.0", "5.0.0", "5.1.0", "5.2.0"]:
-            err_msg = f"version must be one of '4.4.0', '4.5.0', '4.6.0', '4.7.0', '4.8.0', '4.9.0', '5.0.0', '5.1.0', '5.2.0'. '{version}' is given."
+        available_versions: list[str] = self.get_available_versions()
+        if version not in available_versions:
+            err_msg = f"version must be one of {available_versions}. '{version}' is given."  # noqa: E501
             raise ValueError(err_msg)
         self.version = f"v{version}"
         self.data_dir_path: Traversable = files("atlas.data").joinpath(f"versions/{self.version}")  # パッケージ内のdataディレクトリ
@@ -59,18 +60,24 @@ class Atlas:  # Atlasの機能を保持したクラス
         self.__create_mit_list()
         self.__create_casestudy_list()
         self.__clean_description()  # 全ての記述内部に埋め込まれているリンクを削除
-        if not os.path.isdir(str(self.user_data_dir_path.joinpath("chroma"))):  # ユーザ側のディレクトリが存在しない場合
-            print("ベクトルDBの設定がありません。初期化し作成します...")
-            initialize_vector = True  # 初期実行時なので初期化を行う
-        self.chroma_client: ClientAPI = chromadb.PersistentClient(str(self.user_data_dir_path.joinpath("chroma")))
-        if initialize_vector or not os.path.isdir(self.user_data_dir_path.joinpath("chroma")):
-            # 初期化が選択されている or 指定バージョンのvector DBが存在しない場合
-            self.__initialize_vector(model=emb_model)
-            self.__create_tec_list()  # ベクトルを新しい物に置き換えて再実行
-            self.__create_mit_list()  # ベクトルを新しい物に置き換えて再実行
-            self.__clean_description()  # 全ての記述内部に埋め込まれているリンクを削除(作り直してしまうためもう一度)
-        self.technique_chroma_collection: Collection = self.__get_technique_chroma_collection(model=emb_model)
-        self.casestudy_chroma_collection: Collection = self.__get_casestudy_chroma_collection(model=emb_model)
+        if not settings.atlas_test_flag:
+            if settings.openai_api_key is None or settings.openai_api_key == "":
+                err_msg = "OpenAI APIキーが設定されていません。環境変数'OPENAI_API_KEY'にAPIキーを設定してください。"
+                raise ValueError(err_msg)
+            if not os.path.isdir(str(self.user_data_dir_path.joinpath("chroma"))):  # ユーザ側のディレクトリが存在しない場合
+                print("ベクトルDBの設定がありません。初期化し作成します...")
+                initialize_vector = True  # 初期実行時なので初期化を行う
+            self.chroma_client: ClientAPI = chromadb.PersistentClient(str(self.user_data_dir_path.joinpath("chroma")))
+            if initialize_vector or not os.path.isdir(self.user_data_dir_path.joinpath("chroma")):
+                # 初期化が選択されている or 指定バージョンのvector DBが存在しない場合
+                self.__initialize_vector(model=emb_model)
+                self.__create_tec_list()  # ベクトルを新しい物に置き換えて再実行
+                self.__create_mit_list()  # ベクトルを新しい物に置き換えて再実行
+                self.__clean_description()  # 全ての記述内部に埋め込まれているリンクを削除(作り直してしまうためもう一度)
+            self.technique_chroma_collection: Collection = self.__get_technique_chroma_collection(model=emb_model)
+            self.casestudy_chroma_collection: Collection = self.__get_casestudy_chroma_collection(model=emb_model)
+        else:
+            print("Atlas is initialized in test mode. Vector DB functionalities are disabled.")
 
     def __clean_description(self) -> None:
         for tac in self.tactic_list:
@@ -288,14 +295,14 @@ class Atlas:  # Atlasの機能を保持したクラス
             id_list.append(tec.id)
             desc_list.append(tec.description)
             metadata_list.append({"is_parent": not tec.have_parent})
-        vector_list: list[list[int | float]] = self.__create_embedding_multiple(s_list=desc_list, model=model)
+        vector_list: list[list[int | float]] = create_embedding_multiple(s_list=desc_list, model=model)
         vector_df = pl.DataFrame({"ID": id_list, "vector": vector_list})
         vector_df.write_avro(str(self.data_dir_path.joinpath("technique_vector.avro")))  # vector-DBを作成
         # ベクトルDB(chroma)の初期化
         with suppress(NotFoundError):
             self.chroma_client.delete_collection(name="atlas_technique")  # 存在する場合は一度削除してリセット
         openai_ef = embedding_functions.OpenAIEmbeddingFunction(  # ベクトル化関数
-            api_key=os.environ["OPENAI_API_KEY"],
+            api_key=settings.openai_api_key,
             model_name=model,
         )
         collection: Collection = self.chroma_client.get_or_create_collection(
@@ -318,14 +325,14 @@ class Atlas:  # Atlasの機能を保持したクラス
                 desc_list.append(step.description)
                 metadata_list.append({"step_number": i})
 
-        vector_list: list[list[int | float]] = self.__create_embedding_multiple(s_list=desc_list, model=model)
+        vector_list: list[list[int | float]] = create_embedding_multiple(s_list=desc_list, model=model)
         vector_df = pl.DataFrame({"ID": id_list, "vector": vector_list})
         vector_df.write_avro(str(self.data_dir_path.joinpath("casestudy_vector.avro")))  # vector-DBを作成
         # ベクトルDB(chroma)の初期化
         with suppress(NotFoundError):
             self.chroma_client.delete_collection(name="atlas_casestudy")  # 存在する場合は一度削除してリセット
         openai_ef = embedding_functions.OpenAIEmbeddingFunction(  # ベクトル化関数
-            api_key=os.environ["OPENAI_API_KEY"],
+            api_key=settings.openai_api_key,
             model_name=model,
         )
         collection: Collection = self.chroma_client.get_or_create_collection(
@@ -340,7 +347,7 @@ class Atlas:  # Atlasの機能を保持したクラス
         model: Literal["text-embedding-3-small", "text-embedding-3-large"],
     ) -> Collection:  # chromaDBを起動する関数
         openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-            api_key=os.environ["OPENAI_API_KEY"],
+            api_key=settings.openai_api_key,
             model_name=model,
         )
         collection: Collection = self.chroma_client.get_collection(name="atlas_technique", embedding_function=openai_ef)  # ty:ignore[invalid-argument-type]
@@ -351,7 +358,7 @@ class Atlas:  # Atlasの機能を保持したクラス
         model: Literal["text-embedding-3-small", "text-embedding-3-large"],
     ) -> Collection:  # chromaDBを起動する関数
         openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-            api_key=os.environ["OPENAI_API_KEY"],
+            api_key=settings.openai_api_key,
             model_name=model,
         )
         collection: Collection = self.chroma_client.get_collection(name="atlas_casestudy", embedding_function=openai_ef)  # ty:ignore[invalid-argument-type]
@@ -456,6 +463,9 @@ class Atlas:  # Atlasの機能を保持したクラス
         Returns:
             list[Atlas_Technique]: top_kで指定された個数分上位の結果をテクニックオブジェクト
         """
+        if settings.atlas_test_flag:
+            err_msg = "テストモードのため、ベクトルDB検索は無効化されています。"
+            raise ValueError(err_msg)
         if filter == "parent":
             result = self.technique_chroma_collection.query(query_texts=[query], n_results=top_k, where={"is_parent": True})
         elif filter == "child":
@@ -480,51 +490,23 @@ class Atlas:  # Atlasの機能を保持したクラス
         Returns:
             list[AtlasCaseStudyStep]: top_kで指定された個数分上位の結果をケーススタディーのステップオブジェクト
         """
+        if settings.atlas_test_flag:
+            err_msg = "テストモードのため、ベクトルDB検索は無効化されています。"
+            raise ValueError(err_msg)
         result = self.casestudy_chroma_collection.query(query_texts=[query], n_results=top_k)
         ret: list[AtlasCaseStudyStep] = [self.search_cs_step_from_id(cs_step_id=cs_step_id) for cs_step_id in result["ids"][0]]
         return ret
 
-    def __create_embedding_single(self, s: str, model: Literal["text-embedding-3-small", "text-embedding-3-large"]) -> list[float]:
+    def get_available_versions(self) -> list[str]:
         """
-        文字列1つのみを1つのベクトルに変換する関数
-
-        Args:
-            s (str): ベクトル化対象文字列
-            model (str): ベクトル化モデル
+        利用可能なATLASのバージョン一覧を取得する関数
 
         Returns:
-            list[float]: ベクトル
+            list[str]: 利用可能なATLASのバージョン一覧
         """
-        client = OpenAI()
-        response = client.embeddings.create(
-            input=s,
-            model=model,
-        )
-        return response.data[0].embedding
-
-    def __create_embedding_multiple(self, s_list: list[str], model: Literal["text-embedding-3-small", "text-embedding-3-large"]) -> list[list[float]]:
-        """
-        複数の文字列を複数のベクトルに変換する関数(長さによって10個ずつに区切ってベクトル化)
-
-        Args:
-            s_list (list[str]): ベクトル化対象文字列のリスト
-            model (str): ベクトル化モデル
-
-        Returns:
-            list[list[float]]: ベクトルのリスト
-        """
-        client = OpenAI()
-        ret_list: list[list[float]] = []
-
-        def chunked_iterable(iterable: Sequence[T], chunk_size: int) -> Iterator[Sequence[T]]:
-            """指定されたサイズで iterable をチャンクに分割する"""
-            for i in range(0, len(iterable), chunk_size):
-                yield iterable[i : i + chunk_size]
-
-        for chunk in chunked_iterable(s_list, 10):
-            response = client.embeddings.create(
-                input=chunk,  # ty:ignore[invalid-argument-type]
-                model=model,
-            )
-            ret_list += [d.embedding for d in response.data]
-        return ret_list
+        versions: list[str] = []
+        for p in files("atlas.data").joinpath("versions").iterdir():
+            if re.match(r"v\d\.\d\.\d", p.name):
+                version = p.name.lstrip("v")
+                versions.append(version)
+        return sorted(versions)
