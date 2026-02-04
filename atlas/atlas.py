@@ -61,6 +61,9 @@ class Atlas:  # Atlasの機能を保持したクラス
         self.__create_casestudy_list()
         self.__clean_description()  # 全ての記述内部に埋め込まれているリンクを削除
         if not settings.atlas_test_flag:
+            if settings.openai_api_key is None or settings.openai_api_key == "":
+                err_msg = "OpenAI APIキーが設定されていません。環境変数'OPENAI_API_KEY'にAPIキーを設定してください。"
+                raise ValueError(err_msg)
             if not os.path.isdir(str(self.user_data_dir_path.joinpath("chroma"))):  # ユーザ側のディレクトリが存在しない場合
                 print("ベクトルDBの設定がありません。初期化し作成します...")
                 initialize_vector = True  # 初期実行時なので初期化を行う
