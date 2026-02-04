@@ -78,6 +78,15 @@ jobs:
           git checkout dev -- pyproject.toml
           git checkout dev -- .github/workflows/
       
+      - name: Update version in ReadMe
+        if: github.event.inputs.version != ''
+        run: |
+          # @の後のバージョンタグを更新 (例: @1.0.1 -> @v1.2.0)
+          sed -i "s|@[v0-9.]*|@${{ github.event.inputs.version }}|g" ReadMe.Md
+          # --tag の後のバージョンタグを更新 (例: --tag 1.0.1 -> --tag v1.2.0 または 1.2.0)
+          VERSION_WITHOUT_V=$(echo "${{ github.event.inputs.version }}" | sed 's/^v//')
+          sed -i "s|--tag [v0-9.]*|--tag ${VERSION_WITHOUT_V}|g" ReadMe.Md
+      
       - name: Commit and push to main
         run: |
           git add atlas/ ReadMe.Md pyproject.toml .github/workflows/
