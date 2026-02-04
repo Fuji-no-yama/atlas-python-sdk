@@ -3,4 +3,4 @@
 2. `git restore --source=HEAD -- ".devcontainer" ".vscode" ".gitignore" "pyproject.toml" "test"`
 
 # (mainでの)devのマージ方法
-1. `git checkout dev -- ./ReadMe.Md`
+1. `git checkout dev -- (指定ファイル)`
