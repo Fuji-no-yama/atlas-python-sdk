@@ -32,6 +32,7 @@ jobs:
           git checkout dev -- atlas/
           git checkout dev -- ReadMe.Md
           git checkout dev -- pyproject.toml
+          git checkout dev -- .github/workflows/
       
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -75,10 +76,11 @@ jobs:
           git checkout dev -- atlas/
           git checkout dev -- ReadMe.Md
           git checkout dev -- pyproject.toml
+          git checkout dev -- .github/workflows/
       
       - name: Commit and push to main
         run: |
-          git add atlas/ ReadMe.Md pyproject.toml
+          git add atlas/ ReadMe.Md pyproject.toml .github/workflows/
           git commit -m "Merge library files from dev for release ${{ github.event.inputs.version || 'update' }}" || echo "No changes to commit"
           git push origin main
       
