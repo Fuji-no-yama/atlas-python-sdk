@@ -60,13 +60,13 @@ jobs:
   merge:
     needs: test
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    environment: production
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
+          token: ${{ secrets.PAT_TOKEN }}
       
       - name: Configure Git
         run: |
