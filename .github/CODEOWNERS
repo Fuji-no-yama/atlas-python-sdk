@@ -1,0 +1,5 @@
+# ワークフロー変更には必須承認が必要
+/.github/workflows/ @Fuji-no-yama
+
+# セキュリティ関連ファイル
+.github/CODEOWNERS @Fuji-no-yama
