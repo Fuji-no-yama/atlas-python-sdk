@@ -3,12 +3,12 @@ MITRE ATLAS についてPythonから気軽にデータを利用できるよう�
 
 # インストール方法
 ## pipの場合
-- インストール方法: `pip install git+https://github.com/Fuji-no-yama/atlas-python-sdk@1.1.0`
-- アップグレード方法: `pip install -U git+https://github.com/Fuji-no-yama/atlas-python-sdk@1.1.0`
+- インストール方法: `pip install git+https://github.com/Fuji-no-yama/atlas-python-sdk@1.1.1`
+- アップグレード方法: `pip install -U git+https://github.com/Fuji-no-yama/atlas-python-sdk@1.1.1`
 - 削除方法: `pip uninstall atlas`
 
 ## uvの場合
-- インストール・アップグレード方法: `uv add git+https://github.com/Fuji-no-yama/atlas-python-sdk --tag 1.1.0`
+- インストール・アップグレード方法: `uv add git+https://github.com/Fuji-no-yama/atlas-python-sdk --tag 1.1.1`
 - 削除方法: `uv remove atlas`
 
 # 使い方
