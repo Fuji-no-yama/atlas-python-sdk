@@ -10,6 +10,7 @@ atlas = ["data/**/*"]
 
 [tool.setuptools.packages.find]
 include = ["atlas", "atlas.entities", "atlas.config"]
+exclude = ["atlas.data*"]
 
 [project]
 name = "atlas"
