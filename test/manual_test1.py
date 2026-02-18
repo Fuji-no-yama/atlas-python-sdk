@@ -5,7 +5,7 @@ from atlas.core import Atlas
 
 def main() -> None:  # テスト用関数
     load_dotenv(dotenv_path="/workspace/.env.dev", override=True)
-    atlas = Atlas(version="5.3.0", emb_model="text-embedding-3-large", initialize_vector=False)
+    atlas = Atlas(version="5.4.0", emb_model="text-embedding-3-small", initialize_vector=False)
 
     print(atlas.get_available_versions())
 
