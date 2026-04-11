@@ -20,7 +20,6 @@ from chromadb.errors import NotFoundError
 from chromadb.utils import embedding_functions
 from platformdirs import user_data_dir
 
-from atlas.config.settings import settings
 from atlas.config.utils import create_embedding_multiple
 from atlas.entities import AtlasCaseStudy, AtlasCaseStudyStep, AtlasMitigation, AtlasTactic, AtlasTechnique
 
@@ -37,13 +36,15 @@ class Atlas:  # Atlasの機能を保持したクラス
     def __init__(
         self,
         *,  # 以下をキーワード引数に
-        version: str = "5.3.0",
+        version: str = "5.5.0",
         emb_model: Literal["text-embedding-3-small", "text-embedding-3-large"] = "text-embedding-3-large",
         initialize_vector: bool = False,
     ) -> None:
         """
+        Atlasインスタンスを初期化する。
+
         Args:
-            version (str): ATLASデータバージョン ("4.4.0", "4.5.0", "4.6.0", "4.7.0", "4.8.0", "4.9.0", "5.0.0", "5.1.0", "5.2.0", "5.3.0"のいずれか) defaultは5.3.0
+            version (str): ATLASデータバージョン ("4.4.0", "4.5.0", "4.6.0", "4.7.0", "4.8.0", "4.9.0", "5.0.0", "5.1.0", "5.2.0", "5.3.0", "5.4.0", "5.5.0"のいずれか) defaultは5.5.0
             emb_model (str): ベクトル化に使用するモデル
             initialize_vector (bool): ベクトルDBを初期化するかどうか(デフォルトはFalse。TrueにするとベクトルDBを再構築する)
         """  # noqa: E501
@@ -60,10 +61,12 @@ class Atlas:  # Atlasの機能を保持したクラス
         self.__create_mit_list()
         self.__create_casestudy_list()
         self.__clean_description()  # 全ての記述内部に埋め込まれているリンクを削除
-        if not settings.atlas_test_flag:
-            if settings.openai_api_key is None or settings.openai_api_key == "":
-                err_msg = "OpenAI APIキーが設定されていません。環境変数'OPENAI_API_KEY'にAPIキーを設定してください。"
-                raise ValueError(err_msg)
+
+        self.technique_chroma_collection: Collection | None = None
+        self.casestudy_chroma_collection: Collection | None = None
+
+        openai_api_key: str = os.environ.get("OPENAI_API_KEY", "")
+        if openai_api_key:
             if not os.path.isdir(str(self.user_data_dir_path.joinpath("chroma"))):  # ユーザ側のディレクトリが存在しない場合
                 print("ベクトルDBの設定がありません。初期化し作成します...")
                 initialize_vector = True  # 初期実行時なので初期化を行う
@@ -74,10 +77,8 @@ class Atlas:  # Atlasの機能を保持したクラス
                 self.__create_tec_list()  # ベクトルを新しい物に置き換えて再実行
                 self.__create_mit_list()  # ベクトルを新しい物に置き換えて再実行
                 self.__clean_description()  # 全ての記述内部に埋め込まれているリンクを削除(作り直してしまうためもう一度)
-            self.technique_chroma_collection: Collection = self.__get_technique_chroma_collection(model=emb_model)
-            self.casestudy_chroma_collection: Collection = self.__get_casestudy_chroma_collection(model=emb_model)
-        else:
-            print("Atlas is initialized in test mode. Vector DB functionalities are disabled.")
+            self.technique_chroma_collection = self.__get_technique_chroma_collection(model=emb_model)
+            self.casestudy_chroma_collection = self.__get_casestudy_chroma_collection(model=emb_model)
 
     def __clean_description(self) -> None:
         for tac in self.tactic_list:
@@ -302,7 +303,7 @@ class Atlas:  # Atlasの機能を保持したクラス
         with suppress(NotFoundError):
             self.chroma_client.delete_collection(name="atlas_technique")  # 存在する場合は一度削除してリセット
         openai_ef = embedding_functions.OpenAIEmbeddingFunction(  # ベクトル化関数
-            api_key=settings.openai_api_key,
+            api_key=os.environ["OPENAI_API_KEY"],
             model_name=model,
         )
         collection: Collection = self.chroma_client.get_or_create_collection(
@@ -332,7 +333,7 @@ class Atlas:  # Atlasの機能を保持したクラス
         with suppress(NotFoundError):
             self.chroma_client.delete_collection(name="atlas_casestudy")  # 存在する場合は一度削除してリセット
         openai_ef = embedding_functions.OpenAIEmbeddingFunction(  # ベクトル化関数
-            api_key=settings.openai_api_key,
+            api_key=os.environ["OPENAI_API_KEY"],
             model_name=model,
         )
         collection: Collection = self.chroma_client.get_or_create_collection(
@@ -347,7 +348,7 @@ class Atlas:  # Atlasの機能を保持したクラス
         model: Literal["text-embedding-3-small", "text-embedding-3-large"],
     ) -> Collection:  # chromaDBを起動する関数
         openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-            api_key=settings.openai_api_key,
+            api_key=os.environ["OPENAI_API_KEY"],
             model_name=model,
         )
         collection: Collection = self.chroma_client.get_collection(name="atlas_technique", embedding_function=openai_ef)  # ty:ignore[invalid-argument-type]
@@ -358,7 +359,7 @@ class Atlas:  # Atlasの機能を保持したクラス
         model: Literal["text-embedding-3-small", "text-embedding-3-large"],
     ) -> Collection:  # chromaDBを起動する関数
         openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-            api_key=settings.openai_api_key,
+            api_key=os.environ["OPENAI_API_KEY"],
             model_name=model,
         )
         collection: Collection = self.chroma_client.get_collection(name="atlas_casestudy", embedding_function=openai_ef)  # ty:ignore[invalid-argument-type]
@@ -463,8 +464,8 @@ class Atlas:  # Atlasの機能を保持したクラス
         Returns:
             list[Atlas_Technique]: top_kで指定された個数分上位の結果をテクニックオブジェクト
         """
-        if settings.atlas_test_flag:
-            err_msg = "テストモードのため、ベクトルDB検索は無効化されています。"
+        if self.technique_chroma_collection is None:
+            err_msg = "ベクトルDB検索にはOPENAI_API_KEYの設定が必要です。"
             raise ValueError(err_msg)
         if filter == "parent":
             result = self.technique_chroma_collection.query(query_texts=[query], n_results=top_k, where={"is_parent": True})
@@ -490,8 +491,8 @@ class Atlas:  # Atlasの機能を保持したクラス
         Returns:
             list[AtlasCaseStudyStep]: top_kで指定された個数分上位の結果をケーススタディーのステップオブジェクト
         """
-        if settings.atlas_test_flag:
-            err_msg = "テストモードのため、ベクトルDB検索は無効化されています。"
+        if self.casestudy_chroma_collection is None:
+            err_msg = "ベクトルDB検索にはOPENAI_API_KEYの設定が必要です。"
             raise ValueError(err_msg)
         result = self.casestudy_chroma_collection.query(query_texts=[query], n_results=top_k)
         ret: list[AtlasCaseStudyStep] = [self.search_cs_step_from_id(cs_step_id=cs_step_id) for cs_step_id in result["ids"][0]]

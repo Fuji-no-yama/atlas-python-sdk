@@ -1,9 +1,8 @@
+import os
 from collections.abc import Iterator, Sequence
 from typing import Literal, TypeVar
 
 from openai import OpenAI
-
-from .settings import settings
 
 T = TypeVar("T")
 
@@ -19,7 +18,7 @@ def create_embedding_single(s: str, model: Literal["text-embedding-3-small", "te
     Returns:
         list[float]: ベクトル
     """
-    client = OpenAI(api_key=settings.openai_api_key)
+    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     response = client.embeddings.create(
         input=s,
         model=model,
@@ -38,7 +37,7 @@ def create_embedding_multiple(s_list: list[str], model: Literal["text-embedding-
     Returns:
         list[list[float]]: ベクトルのリスト
     """
-    client = OpenAI(api_key=settings.openai_api_key)
+    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     ret_list: list[list[float]] = []
 
     def chunked_iterable(iterable: Sequence[T], chunk_size: int) -> Iterator[Sequence[T]]:
