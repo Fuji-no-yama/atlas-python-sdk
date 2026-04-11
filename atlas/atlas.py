@@ -36,7 +36,7 @@ class Atlas:  # Atlasの機能を保持したクラス
     def __init__(
         self,
         *,  # 以下をキーワード引数に
-        version: str = "5.4.0",
+        version: str = "5.5.0",
         emb_model: Literal["text-embedding-3-small", "text-embedding-3-large"] = "text-embedding-3-large",
         initialize_vector: bool = False,
     ) -> None:
@@ -44,7 +44,7 @@ class Atlas:  # Atlasの機能を保持したクラス
         Atlasインスタンスを初期化する。
 
         Args:
-            version (str): ATLASデータバージョン ("4.4.0", "4.5.0", "4.6.0", "4.7.0", "4.8.0", "4.9.0", "5.0.0", "5.1.0", "5.2.0", "5.3.0", "5.4.0"のいずれか) defaultは5.4.0
+            version (str): ATLASデータバージョン ("4.4.0", "4.5.0", "4.6.0", "4.7.0", "4.8.0", "4.9.0", "5.0.0", "5.1.0", "5.2.0", "5.3.0", "5.4.0", "5.5.0"のいずれか) defaultは5.5.0
             emb_model (str): ベクトル化に使用するモデル
             initialize_vector (bool): ベクトルDBを初期化するかどうか(デフォルトはFalse。TrueにするとベクトルDBを再構築する)
         """  # noqa: E501
