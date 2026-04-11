@@ -124,6 +124,11 @@ class TestAllVersions:
             assert len(atlas.mitigation_list) > 0
             assert len(atlas.casestudy_list) > 0
 
+    def test_default_version_is_latest(self, all_versions: list[str]) -> None:
+        atlas = Atlas()
+        latest = sorted(all_versions)[-1]
+        assert atlas.version == f"v{latest}", f"Default version {atlas.version} is not latest v{latest}"
+
     def test_invalid_version_raises(self) -> None:
         with pytest.raises(ValueError, match="version must be one of"):
             Atlas(version="99.99.99")
