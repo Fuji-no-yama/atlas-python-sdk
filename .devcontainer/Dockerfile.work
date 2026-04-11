@@ -1,12 +1,18 @@
-FROM python:3.10
+FROM python:3.13
 USER root
 
-# uvのインストール
+# uvとtyのインストール
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin
+# codex CLI 用の Node.js を公式イメージから取り込む
+COPY --from=node:20-bookworm /usr/local/ /usr/local/
+# COPY --from=ghcr.io/astral-sh/ty:latest /ty /bin  # 現時点で動かないためコメントアウト
 
 RUN apt-get update && \
     pip install --upgrade pip && \
-    apt-get install -y git
+    apt-get install -y git curl && \
+    npm install -g @openai/codex && \
+    npm cache clean --force && \
+    curl -fsSL https://claude.ai/install.sh | bash
 
 
 WORKDIR /workspace

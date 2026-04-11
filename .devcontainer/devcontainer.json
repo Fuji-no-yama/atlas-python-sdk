@@ -6,14 +6,13 @@
         "vscode": {
             "extensions": [
                 "ms-python.python",
-                "ms-toolsai.jupyter",
                 "mhutchie.git-graph",
                 "ms-azuretools.vscode-docker",
                 "ms-vscode-remote.remote-ssh",
                 "github.copilot",
                 "charliermarsh.ruff",
                 "astral-sh.ty",
-                "github.vscode-github-actions"
+                "openai.chatgpt"
             ],
             "settings": {
                 "workbench.colorCustomizations": {
@@ -25,5 +24,6 @@
             }
         }
     },
-    "postCreateCommand": "uv venv --clear && uv sync"
+    "initializeCommand": "mkdir -p ~/.codex ~/.claude && touch ~/.claude.json",
+    "postCreateCommand": "bash .devcontainer/postCreate.sh"
 }

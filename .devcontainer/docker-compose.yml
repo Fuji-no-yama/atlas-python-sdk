@@ -7,8 +7,11 @@ services:
       context: ..
       dockerfile: .devcontainer/Dockerfile.work
     environment:
-      PYTHONPATH: /workspace
+      PYTHONPATH: /workspace/src
       UV_LINK_MODE: copy
     volumes:
       - ..:/workspace
+      - ${HOME}/.codex:/root/.codex
+      - ${HOME}/.claude:/root/.claude
+      - ${HOME}/.claude.json:/root/.claude.json.host:ro
     command: sleep infinity
