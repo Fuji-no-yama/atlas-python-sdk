@@ -28,7 +28,13 @@ dependencies = [
   "platformdirs>=4.3.7",
   "polars",
   "pydantic-settings>=2.12.0",
+]
+
+[project.optional-dependencies]
+dev = [
   "pytest>=9.0.2",
+  "ruff",
+  "ty",
 ]
 
 [project.urls]
@@ -48,3 +54,12 @@ ignore = ["D", "S", "PTH", "RET", "ASYNC", "T201", "RUF", "ERA001"]
 # 自動修正から除外したいルールを指定
 unfixable = ["F401", "E501"] # 例: 未使用importや行長制限など
 line-length = 150
+
+[tool.ruff.per-file-ignores]
+"tests/**" = ["PLR2004", "PT018", "INP001"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "integration: tests that require external API keys (OpenAI)",
+]
