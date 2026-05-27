@@ -34,6 +34,12 @@ jobs:
           git checkout dev -- .github/workflows/
           git checkout dev -- tests/
 
+      - name: Update package version for release test
+        if: github.event.inputs.version != ''
+        run: |
+          VERSION_WITHOUT_V=$(echo "${{ github.event.inputs.version }}" | sed 's/^v//')
+          sed -i "s|^version = \".*\"|version = \"${VERSION_WITHOUT_V}\"|" pyproject.toml
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -81,13 +87,15 @@ jobs:
           git checkout dev -- pyproject.toml
           git checkout dev -- .github/workflows/
       
-      - name: Update version in README
+      - name: Update version in pyproject.toml and README
         if: github.event.inputs.version != ''
         run: |
+          VERSION_WITHOUT_V=$(echo "${{ github.event.inputs.version }}" | sed 's/^v//')
+          sed -i "s|^version = \".*\"|version = \"${VERSION_WITHOUT_V}\"|" pyproject.toml
+
           # @の後のバージョンタグを更新 (例: @1.0.1 -> @v1.2.0)
           sed -i "s|@[v0-9.]*|@${{ github.event.inputs.version }}|g" README.md
           # --tag の後のバージョンタグを更新 (例: --tag 1.0.1 -> --tag v1.2.0 または 1.2.0)
-          VERSION_WITHOUT_V=$(echo "${{ github.event.inputs.version }}" | sed 's/^v//')
           sed -i "s|--tag [v0-9.]*|--tag ${VERSION_WITHOUT_V}|g" README.md
       
       - name: Commit and push to main
@@ -95,7 +103,7 @@ jobs:
           git add atlas/ README.md pyproject.toml .github/workflows/
           git commit -m "Merge library files from dev for release ${{ github.event.inputs.version || 'update' }}" || echo "No changes to commit"
           git push origin main
-      
+
       - name: Create tag and release
         if: github.event.inputs.version != ''
         env:
@@ -107,3 +115,12 @@ jobs:
             --title "${{ github.event.inputs.version }}" \
             --notes "Release ${{ github.event.inputs.version }}" \
             --target main
+
+      - name: Sync release version files back to dev
+        if: github.event.inputs.version != ''
+        run: |
+          git checkout dev
+          git checkout main -- README.md pyproject.toml
+          git add README.md pyproject.toml
+          git commit -m "Sync release version ${{ github.event.inputs.version }} from main" || echo "No changes to commit"
+          git push origin dev
