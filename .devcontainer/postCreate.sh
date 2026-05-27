@@ -10,7 +10,7 @@ export PATH="$CLAUDE_BIN_DIR:$PATH"
 
 # Python仮想環境のセットアップ
 rm -rf /workspace/.venv
-uv sync
+uv sync --extra dev
 
 # claude.jsonの設定 (ホストの認証情報を引き継ぎ、installMethodをコンテナに合わせて上書き)
 python3 - <<'EOF'

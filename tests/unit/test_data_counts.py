@@ -16,6 +16,8 @@ EXPECTED_COUNTS: dict[str, dict[str, int]] = {
     "5.2.0": {"tactics": 16, "techniques": 91, "sub_techniques": 56, "mitigations": 35, "casestudies": 45},
     "5.3.0": {"tactics": 16, "techniques": 92, "sub_techniques": 56, "mitigations": 35, "casestudies": 48},
     "5.4.0": {"tactics": 16, "techniques": 97, "sub_techniques": 58, "mitigations": 35, "casestudies": 52},
+    "5.5.0": {"tactics": 16, "techniques": 101, "sub_techniques": 66, "mitigations": 35, "casestudies": 57},
+    "5.6.0": {"tactics": 16, "techniques": 101, "sub_techniques": 69, "mitigations": 35, "casestudies": 57},
 }
 
 
