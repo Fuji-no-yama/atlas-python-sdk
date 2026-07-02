@@ -1,22 +1,61 @@
 import re
 
+from .reference import AtlasReference
 from .technique import AtlasTechnique
 
 
-class AtlasMitigation:  # 1つの緩和策を表すクラス
-    def __init__(self, mitigation_id: str, name: str, description: str, tec_lis: list[AtlasTechnique], *, snake_case_name: str | None = None) -> None:
+class AtlasMitigation:
+    """
+    ATLASの緩和策(mitigation)を表すクラス。
+
+    Args:
+        mitigation_id (str): 緩和策のID (例: "AML.M0000")
+        name (str): 表示名
+        description (str): 説明文(初期化時にリンクなどを清掃)
+        tec_lis (list[AtlasTechnique]): この緩和策が対象とするテクニックのリスト
+        uuid (str | None): v6形式で付与されるUUID
+        references (list[AtlasReference] | None): 外部参照リスト
+    """
+
+    def __init__(  # noqa: PLR0913
+        self,
+        mitigation_id: str,
+        name: str,
+        description: str,
+        tec_lis: list[AtlasTechnique],
+        *,
+        uuid: str | None = None,
+        references: list[AtlasReference] | None = None,
+    ) -> None:
         self.id: str = mitigation_id
         self.name: str = name
-        self.description: str = self.clean_description(description)  # リンク系統を清掃する
+        self.description: str = self.clean_description(description)
         self.technique_list: list[AtlasTechnique] = tec_lis
-        self.snake_case_name: str | None = snake_case_name
+        self.uuid: str | None = uuid
+        self.references: list[AtlasReference] | None = references
 
-    def check_technique_by_id(self, technique_id: str) -> bool:  # ある緩和策内にテクニックが含まれるかを確かめる関数
+    def check_technique_by_id(self, technique_id: str) -> bool:
+        """
+        与えられたテクニックIDがこの緩和策の対象に含まれるかを判定する。
+
+        Args:
+            technique_id (str): 判定対象のテクニックID
+
+        Returns:
+            bool: 含まれる場合True
+        """
         return any(tec.id == technique_id for tec in self.technique_list)
 
     def clean_description(self, desc: str) -> str:
-        # リンクなどのノイズのみを削除する関数(mitigationには現在はリンクなどはないが今後に備えてテクニックと同等の関数を用意する)  # noqa: ERA001
-        pattern = r"\[(.*?)\]\(.*?\)"  # リンク表現(表示される部分のみをキャプチャ)
-        replacement = r"\1"  # \1で最初のキャプチャグループ(表示される部分)のみに置き換え
-        result: str = re.sub(pattern, replacement, desc)
-        return result
+        """
+        descriptionからマークダウンリンクの表示部分のみを残しURL部分を除去する。
+
+        Args:
+            desc (str): 元のdescription文字列
+
+        Returns:
+            str: 清掃後のdescription文字列
+        """
+        pattern = r"\[(.*?)\]\(.*?\)"
+        replacement = r"\1"
+        return re.sub(pattern, replacement, desc)
