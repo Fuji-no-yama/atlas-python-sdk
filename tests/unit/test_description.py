@@ -2,7 +2,7 @@
 
 import re
 
-from atlas.core import Atlas
+from atlas import Atlas
 
 
 class TestDescriptionCleaning:

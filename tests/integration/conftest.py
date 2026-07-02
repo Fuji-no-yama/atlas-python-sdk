@@ -1,7 +1,7 @@
 import pytest
 from dotenv import dotenv_values
 
-from atlas.core import Atlas
+from atlas import Atlas
 
 _env = dotenv_values(".env.dev")
 
