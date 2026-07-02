@@ -2,7 +2,7 @@
 
 import pytest
 
-from atlas.core import Atlas
+from atlas import Atlas
 from atlas.entities import AtlasCaseStudy, AtlasCaseStudyStep, AtlasMitigation, AtlasTactic, AtlasTechnique
 
 

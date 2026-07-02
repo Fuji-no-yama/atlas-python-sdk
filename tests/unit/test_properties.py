@@ -2,7 +2,7 @@
 
 import pytest
 
-from atlas.core import Atlas
+from atlas import Atlas
 from atlas.entities import AtlasCaseStudy, AtlasMitigation, AtlasTactic, AtlasTechnique
 
 
@@ -96,7 +96,7 @@ class TestCaseStudyProperties:
 
     def test_casestudy_type(self, atlas_default: Atlas) -> None:
         for cs in atlas_default.casestudy_list:
-            assert cs.type in ("exercise", "incident"), f"Unexpected casestudy type: {cs.type}"
+            assert cs.type in ("Exercise", "Incident"), f"Unexpected casestudy type: {cs.type}"
 
 
 class TestTacticProperties:
