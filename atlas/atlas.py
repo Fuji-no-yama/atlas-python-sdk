@@ -22,8 +22,10 @@ from atlas.entities import (
     AtlasCaseStudyStep,
     AtlasMitigation,
     AtlasReference,
+    AtlasRelationship,
     AtlasTactic,
     AtlasTechnique,
+    RelationshipType,
 )
 
 if TYPE_CHECKING:
@@ -68,6 +70,7 @@ class Atlas:
         self.__create_tec_list()
         self.__create_mit_list()
         self.__create_casestudy_list()
+        self.__build_relationships()
         self.__apply_relationships()
 
         self.technique_chroma_collection: Collection | None = None
@@ -169,55 +172,79 @@ class Atlas:
             self.casestudy_list.append(cs)
             self._casestudies_by_id[cid] = cs
 
-    def __apply_relationships(self) -> None:  # noqa: C901, PLR0912
-        relationships: dict[str, dict[str, list[dict[str, Any]]]] = self._raw.get("relationships", {})
+    def __build_relationships(self) -> None:
+        """v6の relationships セクションを AtlasRelationship のフラットリストに正規化する。"""
+        self.relationships: list[AtlasRelationship] = []
+        raw_relationships: dict[str, dict[str, list[dict[str, Any]]]] = self._raw.get("relationships", {})
+        known_types: set[str] = {"achieves", "specializes", "mitigates", "employs", "sequences"}
+        for groups in raw_relationships.values():
+            for rel_type, entries in groups.items():
+                if rel_type not in known_types:
+                    continue
+                for rel in entries:
+                    self.relationships.append(
+                        AtlasRelationship(
+                            source_id=str(rel["source"]),
+                            target_id=str(rel["target"]),
+                            type=rel_type,  # type: ignore[arg-type]
+                            description=rel.get("description"),
+                            tactic_id=rel.get("tactic"),
+                            step_id=rel.get("step-id"),
+                            leads_to=rel.get("leads-to"),
+                            position=rel.get("position"),
+                            uuid=rel.get("uuid"),
+                            references=self._make_references(rel.get("references")),
+                            raw=rel,
+                        ),
+                    )
 
-        for src_id, groups in relationships.items():
-            for rel in groups.get("achieves", []):
-                tec = self._techniques_by_id.get(rel["source"])
-                tac = self._tactics_by_id.get(rel["target"])
+    def __apply_relationships(self) -> None:  # noqa: C901, PLR0912
+        """self.relationships をもとに派生ビュー(technique.tactics 等)を materialize する。"""
+        for rel in self.relationships:
+            if rel.type == "achieves":
+                tec = self._techniques_by_id.get(rel.source_id)
+                tac = self._tactics_by_id.get(rel.target_id)
                 if tec is None or tac is None:
                     continue
                 if tac not in tec.tactics:
                     tec.tactics.append(tac)
                 if tec not in tac.technique_list:
                     tac.technique_list.append(tec)
-            for rel in groups.get("mitigates", []):
-                mit = self._mitigations_by_id.get(rel["source"])
-                tec = self._techniques_by_id.get(rel["target"])
-                if mit is None or tec is None:
+            elif rel.type == "mitigates":
+                mit = self._mitigations_by_id.get(rel.source_id)
+                tec_m = self._techniques_by_id.get(rel.target_id)
+                if mit is None or tec_m is None:
                     continue
-                if tec not in mit.technique_list:
-                    mit.technique_list.append(tec)
-            for rel in groups.get("employs", []):
-                cs = self._casestudies_by_id.get(rel["source"])
-                tec = self._techniques_by_id.get(rel["target"])
-                tac = self._tactics_by_id.get(rel.get("tactic"))
-                if cs is None or tec is None or tac is None:
+                if tec_m not in mit.technique_list:
+                    mit.technique_list.append(tec_m)
+            elif rel.type == "employs":
+                cs = self._casestudies_by_id.get(rel.source_id)
+                tec_e = self._techniques_by_id.get(rel.target_id)
+                tac_e = self._tactics_by_id.get(rel.tactic_id) if rel.tactic_id else None
+                if cs is None or tec_e is None or tac_e is None:
                     continue
-                step_id: str = rel.get("step-id", "")
+                step_id_value: str = rel.step_id or ""
                 cs.procedure.append(
                     AtlasCaseStudyStep(
-                        casestudy_step_id=f"{cs.id}.{step_id}",
-                        tactic=tac,
-                        technique=tec,
-                        description=rel.get("description", ""),
+                        casestudy_step_id=f"{cs.id}.{step_id_value}",
+                        tactic=tac_e,
+                        technique=tec_e,
+                        description=rel.description or "",
                         parent_id=cs.id,
-                        step_id=step_id or None,
-                        leads_to=rel.get("leads-to"),
+                        step_id=rel.step_id,
+                        leads_to=rel.leads_to,
                     ),
                 )
-            _ = src_id  # relationshipsのキーは source と一致するため未使用
 
-        for src_id, groups in relationships.items():
-            for rel in groups.get("specializes", []):
-                child = self._techniques_by_id.get(rel["source"])
-                parent = self._techniques_by_id.get(rel["target"])
-                if child is None or parent is None:
-                    continue
-                child.have_parent = True
-                child.parent_id = parent.id
-            _ = src_id
+        for rel in self.relationships:
+            if rel.type != "specializes":
+                continue
+            child = self._techniques_by_id.get(rel.source_id)
+            parent = self._techniques_by_id.get(rel.target_id)
+            if child is None or parent is None:
+                continue
+            child.have_parent = True
+            child.parent_id = parent.id
 
         # 旧v6リリース(specializes未導入)向けのフォールバック: ID命名規則 "AML.T####.###" からサブテクニックを推定
         for tec in self.technique_list:
@@ -233,7 +260,36 @@ class Atlas:
                     tec.parent_id = parent_id
 
         for cs in self.casestudy_list:
-            cs.procedure.sort(key=lambda s: s.step_id or "")
+            cs.procedure.sort(key=lambda s: (s.step_id or ""))
+
+    def get_relationships(
+        self,
+        *,
+        source_id: str | None = None,
+        target_id: str | None = None,
+        type: RelationshipType | None = None,  # noqa: A002
+    ) -> list[AtlasRelationship]:
+        """
+        self.relationships を source_id / target_id / type で絞り込んだリストを返す。
+
+        Args:
+            source_id (str | None): 起点エンティティIDでフィルタ
+            target_id (str | None): 対象エンティティIDでフィルタ
+            type (RelationshipType | None): 関係種別でフィルタ
+
+        Returns:
+            list[AtlasRelationship]: 条件に一致するrelationshipのリスト
+        """
+        result: list[AtlasRelationship] = []
+        for rel in self.relationships:
+            if source_id is not None and rel.source_id != source_id:
+                continue
+            if target_id is not None and rel.target_id != target_id:
+                continue
+            if type is not None and rel.type != type:
+                continue
+            result.append(rel)
+        return result
 
     def __attach_technique_vectors(self) -> None:
         avro_path: Path = self.user_data_dir_path.joinpath("technique_vector.avro")

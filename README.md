@@ -44,6 +44,41 @@ atlas = Atlas(version="2026.06", emb_model="text-embedding-3-small", initialize_
 - `version` (str) : ロード済みのリリース (`"v2026.06"` のように `v` プレフィックス付き)
 - `release` (str) : ロード済みのリリース識別子 (例 `"2026.06"`)
 - `tactic_list` / `technique_list` / `mitigation_list` / `casestudy_list` : 各エンティティのリスト
+- `relationships` (list[AtlasRelationship]) : v6形式の relationships を第一級で保持したリスト。`technique.tactics` / `mitigation.technique_list` / `casestudy.procedure` などはここから派生した materialize 済みビュー
+
+### ATLAS リレーションシップ オブジェクト
+v6 では関係(edge)がトップレベル `relationships:` に集約されており、本ライブラリでも `atlas.relationships` として第一級で保持します。既存の派生ビュー(`technique.tactics` 等)はロード時に一度 materialize されるため、通常用途ではそちらを使用してください。relationships への直接アクセスは、正規順序 (`sequences`) や関係固有の説明・step-id への到達などに使えます。
+
+#### 保有情報
+- `source_id` (str) : 起点エンティティID (例: `AML.CS0000`)
+- `target_id` (str) : 対象エンティティID (例: `AML.T0000.001`)
+- `type` (Literal) : 関係種別 (`achieves` / `specializes` / `mitigates` / `employs` / `sequences`)
+- `description` (str | None) : `mitigates` / `employs` の説明
+- `tactic_id` (str | None) : `employs` におけるステップのタクティックID
+- `step_id` (str | None) : `employs` における step-id (例 `S00`)
+- `leads_to` (list[str] | None) : `employs` における次に遷移し得る step-id 一覧
+- `position` (int | None) : `sequences` / `employs` における順序
+- `uuid` (str | None) / `references` (list[AtlasReference] | None) : 将来のv6.x で relationship 自体がエンティティ化された場合の受け皿(現行v6.0.0では常にNone)
+- `raw` (dict) : 未モデル化フィールド保持用の生辞書
+
+#### 使用例
+```python
+# タクティックのマトリクス上の正規順序 (kill chain sequence) を取得
+matrix_order = [
+    r.target_id
+    for r in sorted(
+        atlas.get_relationships(source_id="ATLAS-matrix", type="sequences"),
+        key=lambda r: r.position or 0,
+    )
+]
+
+# あるテクニックを緩和する mitigation を relationships から逆引き
+mitigations_for_tec = atlas.get_relationships(target_id="AML.T0000", type="mitigates")
+for rel in mitigations_for_tec:
+    print(rel.source_id, "->", rel.target_id, ":", rel.description)
+```
+
+`Atlas.get_relationships(source_id=..., target_id=..., type=...)` で絞り込みが可能です。
 
 ### ATLAS テクニック オブジェクト
 
@@ -200,3 +235,4 @@ for cs_step in ret:
 - `AtlasCaseStudyStep.id` の形式が `AML.CS0000.0` から **`AML.CS0000.S00`** (v6 の step-id 準拠) に変更。あわせて `step_id` / `leads_to` フィールドを追加。
 - `AtlasCaseStudy.type` の Literal 値が `"exercise"/"incident"` から v6 表記の **`"Exercise"/"Incident"`** に変更。
 - ベクトル関連ファイル (`technique_vector.avro` / `casestudy_vector.avro` / chromaDB) の格納先が `user_data_dir/atlas/releases/<release>/` に統一。
+- v6 の `relationships` を保持する `AtlasRelationship` エンティティと `Atlas.relationships` / `Atlas.get_relationships(...)` を新設 (既存の派生ビュー API と共存)。
