@@ -4,6 +4,9 @@ tmp/*
 .DS_Store
 .env.dev
 
+# hatch-vcs generated version file
+atlas/_version.py
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
